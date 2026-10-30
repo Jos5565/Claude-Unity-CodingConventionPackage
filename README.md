@@ -60,7 +60,10 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
    - 나중에 설치하려면 **Tools > UnityConv > Install Unity-MCP**를 씁니다.
 
 ### 3. Claude Code에서 사용
-git 루트에서 Claude Code를 **새로** 엽니다. 스킬 목록은 세션을 시작할 때 읽기 때문입니다.
+스킬이 설치된 폴더(Console 로그에 나온 경로의 `.claude` 바로 위, 보통 Unity 프로젝트 폴더)에서 Claude Code를 **새로** 엽니다.
+
+> Claude Code는 시작한 폴더와 그 위 폴더(git 저장소 루트까지)의 `.claude/skills`만 처음에 불러옵니다. **시작한 폴더보다 아래**에 있는 스킬은 그 폴더의 파일을 읽기 전까지 `/` 메뉴에 나오지 않습니다.
+> 예를 들어 여러 프로젝트를 담은 상위 폴더에서 시작하면 `/code-conv`가 보이지 않습니다. 이때는 Unity 프로젝트 폴더에서 다시 시작하거나, 세션 안에서 `/add-dir <Unity 프로젝트 경로>`를 실행하세요.
 
 ```
 /code-conv 프로젝트 설정 만들기
@@ -103,7 +106,8 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 |---|---|
 | `No 'git' executable was found` | git이 설치돼 있는지 확인하고, 설치한 뒤 Unity Hub와 에디터를 다시 시작합니다 |
 | `Unable to find package` / 404 | 주소의 `?path=`와 `#태그`가 정확한지 확인합니다 |
-| `/code-conv`가 안 보임 | Console에 `[UnityConv]` 설치 로그가 있는지 봅니다. Claude Code를 **git 루트에서 새로** 열었는지 확인합니다. 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
+| `/code-conv`가 안 보임 | 1) Console의 `[UnityConv]` 설치 로그에서 설치 경로를 확인합니다. 2) Claude Code를 **그 경로의 `.claude` 바로 위 폴더나 그 아래**에서 새로 열었는지 확인합니다. 상위 폴더에서 열었다면 `/add-dir <Unity 프로젝트 경로>`를 씁니다. 3) 스킬 폴더를 세션 중에 처음 만들었다면 `/reload-skills`를 실행합니다. 4) 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
+| 스킬 폴더를 다른 곳으로 옮겼더니 다시 생김 | 설치 도구는 Unity 프로젝트에서 가장 가까운 git 루트에 설치합니다. 옮기지 말고, Claude Code를 그 폴더에서 시작하세요 |
 | `UnityConv` 네임스페이스를 못 찾음 | 코드가 자체 `.asmdef` 안에 있다면 References에 `UnityConv`(Bases, Network)나 `UnityConv.UI`를 추가합니다 |
 | 같은 이름의 클래스가 두 개라는 에러 (`ButtonToggle` 등) | `com.jos.uguitemplate`가 아직 설치돼 있습니다. 지우세요 |
 | 샘플 플레이 중 `InvalidOperationException ... UnityEngine.Input class` | 아래 [샘플](#샘플)의 입력 설정 안내를 보세요 |
