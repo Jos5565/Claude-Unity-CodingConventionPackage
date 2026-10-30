@@ -12,7 +12,7 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace UnityConv.Editor
 {
     /// <summary>
-    /// 에디터가 열릴 때 패키지의 Skill~ 을 git 루트의 .claude/skills 로 설치 (내용이 바뀐 경우만), Unity-MCP 설치 확인
+    /// 에디터가 열릴 때 패키지의 Skill~ 을 개인 스킬 폴더(~/.claude/skills)로 설치 (내용이 바뀐 경우만), Unity-MCP 설치 확인
     /// </summary>
     [InitializeOnLoad]
     internal static class SkillInstaller
@@ -41,6 +41,18 @@ namespace UnityConv.Editor
             InstallSkill(true);
         }
 
+        [MenuItem("Tools/UnityConv/Open Skill Folder")]
+        private static void OpenSkillFolder()
+        {
+            string target = Path.Combine(GetClaudeConfigDir(), "skills", SkillName);
+            if (!Directory.Exists(target))
+            {
+                EditorUtility.DisplayDialog("UnityConv", $"스킬이 아직 설치되지 않았습니다.\n{target}\n\nTools > UnityConv > Reinstall Skill로 설치하세요.", "확인");
+                return;
+            }
+            EditorUtility.RevealInFinder(Path.Combine(target, "SKILL.md"));
+        }
+
         [MenuItem("Tools/UnityConv/Install Unity-MCP")]
         private static void InstallMcpMenu()
         {
@@ -67,6 +79,9 @@ namespace UnityConv.Editor
 
         #region Skill
 
+        /// <summary>
+        /// 개인 스킬 폴더(~/.claude/skills)에 설치, Claude Code를 어느 폴더에서 열어도 보임 (macOS / Windows 공통)
+        /// </summary>
         private static void InstallSkill(bool force)
         {
             PackageInfo package = PackageInfo.FindForAssembly(typeof(SkillInstaller).Assembly);
@@ -83,34 +98,47 @@ namespace UnityConv.Editor
                 return;
             }
 
-            string root = FindClaudeRoot();
-            string skillsDir = Path.Combine(root, ".claude", "skills");
+            string claudeDir = GetClaudeConfigDir();
+            string skillsDir = Path.Combine(claudeDir, "skills");
             string target = Path.Combine(skillsDir, SkillName);
             string stampPath = Path.Combine(target, StampFileName);
             string stamp = $"{package.version}\n{ComputeHash(source)}";
 
-            if (!force && File.Exists(stampPath) && File.ReadAllText(stampPath) == stamp)
+            RemoveProjectSkill();
+
+            if (File.Exists(stampPath))
             {
-                return;
+                string installed = File.ReadAllText(stampPath);
+                if (!force && installed == stamp)
+                {
+                    return;
+                }
+
+                // 개인 폴더는 PC에 하나라 다른 프로젝트가 설치한 더 높은 버전은 낮추지 않음 (메뉴 Reinstall은 강제)
+                string installedVersion = installed.Split('\n')[0];
+                if (!force && CompareVersion(installedVersion, package.version) > 0)
+                {
+                    Debug.Log($"{LogTag} 더 높은 버전(v{installedVersion})의 /{SkillName} 스킬이 이미 설치돼 있어 건너뜁니다: {target}");
+                    return;
+                }
             }
 
             if (Directory.Exists(target))
             {
                 if (File.Exists(stampPath))
                 {
-                    Directory.Delete(target, true);
+                    DeleteDirectory(target);
                 }
                 else
                 {
-                    // 패키지가 설치하지 않은 폴더 (직접 복사한 이전 스킬), skills 밖으로 옮겨 명령어 중복 방지
-                    string backup = Path.Combine(root, ".claude", $"{SkillName}.backup-{DateTime.Now:yyyyMMddHHmmss}");
+                    // 패키지가 설치하지 않은 폴더 (직접 만든 스킬), skills 밖으로 옮겨 보관
+                    string backup = Path.Combine(claudeDir, $"{SkillName}.backup-{DateTime.Now:yyyyMMddHHmmss}");
                     Directory.Move(target, backup);
                     Debug.LogWarning($"{LogTag} 기존 {SkillName} 스킬 폴더를 백업으로 옮겼습니다: {backup}");
                 }
             }
 
             CopyDirectory(source, target);
-            File.WriteAllText(Path.Combine(target, ".gitignore"), "# com.jos.unityconv 패키지가 설치한 폴더, 직접 수정하지 말고 패키지에서 업데이트\n*\n");
             File.WriteAllText(stampPath, stamp);
             Debug.Log($"{LogTag} /{SkillName} 스킬 설치 (v{package.version}): {target}");
 
@@ -122,9 +150,61 @@ namespace UnityConv.Editor
         }
 
         /// <summary>
-        /// Claude Code를 여는 위치, Unity 프로젝트에서 위로 올라가며 git 루트를 찾고 없으면 Unity 프로젝트 루트
+        /// Claude Code 설정 폴더, CLAUDE_CONFIG_DIR이 있으면 그 경로, 없으면 사용자 폴더의 .claude (Windows: %USERPROFILE%\.claude)
         /// </summary>
-        private static string FindClaudeRoot()
+        private static string GetClaudeConfigDir()
+        {
+            string configDir = Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR");
+            if (!string.IsNullOrEmpty(configDir))
+            {
+                return configDir;
+            }
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude");
+        }
+
+        /// <summary>
+        /// v2.0 이하가 프로젝트(git 루트)에 설치한 스킬 정리, 패키지가 설치한 것(.installed 있음)만 삭제
+        /// </summary>
+        private static void RemoveProjectSkill()
+        {
+            string projectSkill = Path.Combine(FindGitRoot(), ".claude", "skills", SkillName);
+            if (!File.Exists(Path.Combine(projectSkill, StampFileName)))
+            {
+                return;
+            }
+
+            DeleteDirectory(projectSkill);
+            Debug.Log($"{LogTag} 프로젝트에 설치됐던 이전 방식의 스킬을 정리했습니다 (이제 개인 스킬 폴더에 설치): {projectSkill}");
+        }
+
+        /// <summary>
+        /// 버전 비교 (a > b 이면 양수), 형식이 다르면 0
+        /// </summary>
+        private static int CompareVersion(string a, string b)
+        {
+            if (Version.TryParse(a.Split('-')[0], out Version va) && Version.TryParse(b.Split('-')[0], out Version vb))
+            {
+                return va.CompareTo(vb);
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// 읽기 전용 속성을 풀고 삭제 (Windows에서 패키지 캐시 파일을 복사하면 읽기 전용이 될 수 있음)
+        /// </summary>
+        private static void DeleteDirectory(string path)
+        {
+            foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+            }
+            Directory.Delete(path, true);
+        }
+
+        /// <summary>
+        /// Unity 프로젝트에서 위로 올라가며 찾은 git 루트, 없으면 Unity 프로젝트 루트
+        /// </summary>
+        private static string FindGitRoot()
         {
             string projectRoot = Directory.GetParent(Application.dataPath).FullName;
             DirectoryInfo dir = new DirectoryInfo(projectRoot);
@@ -149,7 +229,9 @@ namespace UnityConv.Editor
                 {
                     continue;
                 }
-                File.Copy(file, Path.Combine(target, Path.GetFileName(file)), true);
+                string copied = Path.Combine(target, Path.GetFileName(file));
+                File.Copy(file, copied, true);
+                File.SetAttributes(copied, FileAttributes.Normal);
             }
             foreach (string dir in Directory.GetDirectories(source))
             {

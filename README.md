@@ -21,12 +21,13 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.1
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.1.0
 ```
 
 ### 준비
 - **git 설치**: Unity가 git 명령으로 패키지를 받습니다. 터미널에서 `git --version`이 실행되는지 확인하세요. git을 새로 설치했다면 Unity Hub와 에디터를 다시 시작해야 합니다.
 - **Unity 6 (6000.0) 이상**: UI 컴포넌트가 `com.unity.ugui` 2.0.0을 씁니다. 이 의존성은 자동으로 설치됩니다.
+- **macOS, Windows 모두 지원**합니다. Windows는 [Git for Windows](https://git-scm.com/download/win)를 설치하세요.
 
 ### 1. 패키지 추가 (둘 중 하나)
 
@@ -41,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.1",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.1.0",
     ...
   }
 }
@@ -53,17 +54,23 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 처음 열면 자동으로 두 가지가 진행됩니다.
 
 1. **스킬 설치**
-   - 패키지 안의 스킬이 프로젝트 git 루트의 `.claude/skills/code-conv/`에 복사됩니다. git 루트가 없으면 Unity 프로젝트 루트에 복사됩니다.
-   - Console에 `[UnityConv] /code-conv 스킬 설치` 로그가 찍힙니다.
+   - 패키지 안의 스킬이 **개인 스킬 폴더**에 복사됩니다. 이 PC에서 여는 모든 Claude Code 세션에서 보입니다.
+
+     | OS | 설치 위치 |
+     |---|---|
+     | macOS | `~/.claude/skills/code-conv/` |
+     | Windows | `%USERPROFILE%\.claude\skills\code-conv\` (예: `C:\Users\<이름>\.claude\skills\code-conv\`) |
+
+   - `CLAUDE_CONFIG_DIR` 환경 변수를 쓰고 있으면 그 폴더의 `skills/code-conv/`에 설치됩니다. Unity Hub를 실행할 때 이 변수가 잡혀 있어야 합니다(시스템 환경 변수로 설정).
+   - Console에 `[UnityConv] /code-conv 스킬 설치` 로그가 찍힙니다. 설치된 폴더는 **Tools > UnityConv > Open Skill Folder**로 열 수 있습니다.
 2. **Unity-MCP 설치 확인**
    - 설치돼 있지 않으면 대화상자가 뜹니다. **설치**, **다시 묻지 않음**, **나중에** 중 하나를 고릅니다.
    - 나중에 설치하려면 **Tools > UnityConv > Install Unity-MCP**를 씁니다.
 
 ### 3. Claude Code에서 사용
-스킬이 설치된 폴더(Console 로그에 나온 경로의 `.claude` 바로 위, 보통 Unity 프로젝트 폴더)에서 Claude Code를 **새로** 엽니다.
+Claude Code를 엽니다. 개인 스킬이라 **어느 폴더에서 열어도** `/code-conv`가 보입니다. 이미 열려 있던 세션에도 바로 반영됩니다.
 
-> Claude Code는 시작한 폴더와 그 위 폴더(git 저장소 루트까지)의 `.claude/skills`만 처음에 불러옵니다. **시작한 폴더보다 아래**에 있는 스킬은 그 폴더의 파일을 읽기 전까지 `/` 메뉴에 나오지 않습니다.
-> 예를 들어 여러 프로젝트를 담은 상위 폴더에서 시작하면 `/code-conv`가 보이지 않습니다. 이때는 Unity 프로젝트 폴더에서 다시 시작하거나, 세션 안에서 `/add-dir <Unity 프로젝트 경로>`를 실행하세요.
+> 작업할 Unity 프로젝트 폴더(또는 그 위 git 루트)에서 여는 것을 권장합니다. 스킬이 그 프로젝트의 `CLAUDE.md`(`code-conv 프로젝트 설정`)를 읽기 때문입니다.
 
 ```
 /code-conv 프로젝트 설정 만들기
@@ -86,16 +93,16 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 3. `com.jos.uguitemplate`를 쓰던 코드는 `using UGUICUSTOM;`을 `using UnityConv.UI;`로 바꿉니다.
    - 두 패키지를 같이 설치하면 같은 이름의 클래스가 두 개가 되어 컴파일 에러가 납니다. 반드시 예전 패키지를 먼저 지우세요.
    - `ButtonToggle`은 v2에서 이벤트 이름이 `OnClick` → `onClick`, `IsOn` → `onValueChanged`로 바뀌었습니다. 씬과 프리팹에 저장된 연결은 그대로 유지됩니다. 코드에서 직접 부르던 곳만 바꾸면 됩니다.
-4. `.claude/skills/code-conv/`는 새 패키지가 다시 설치합니다. 따로 할 일은 없습니다.
+4. 스킬은 새 패키지가 개인 스킬 폴더에 다시 설치합니다. v2.0 이하가 프로젝트에 설치했던 `.claude/skills/code-conv/`는 자동으로 지워집니다. 따로 할 일은 없습니다.
 
 ---
 
 ## 업데이트
 
-주소 끝의 `#v2.0.1`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.1.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 1. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
-2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.0.1` → `#v2.1.0`
+2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.1.0` → `#v2.2.0`
 3. Unity로 돌아오면 새 버전을 받고, 스킬도 새 버전으로 다시 설치됩니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
@@ -106,8 +113,9 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 |---|---|
 | `No 'git' executable was found` | git이 설치돼 있는지 확인하고, 설치한 뒤 Unity Hub와 에디터를 다시 시작합니다 |
 | `Unable to find package` / 404 | 주소의 `?path=`와 `#태그`가 정확한지 확인합니다 |
-| `/code-conv`가 안 보임 | 1) Console의 `[UnityConv]` 설치 로그에서 설치 경로를 확인합니다. 2) Claude Code를 **그 경로의 `.claude` 바로 위 폴더나 그 아래**에서 새로 열었는지 확인합니다. 상위 폴더에서 열었다면 `/add-dir <Unity 프로젝트 경로>`를 씁니다. 3) 스킬 폴더를 세션 중에 처음 만들었다면 `/reload-skills`를 실행합니다. 4) 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
-| 스킬 폴더를 다른 곳으로 옮겼더니 다시 생김 | 설치 도구는 Unity 프로젝트에서 가장 가까운 git 루트에 설치합니다. 옮기지 말고, Claude Code를 그 폴더에서 시작하세요 |
+| `/code-conv`가 안 보임 | 1) Console에 `[UnityConv] /code-conv 스킬 설치` 로그가 있는지, **Tools > UnityConv > Open Skill Folder**로 폴더가 열리는지 확인합니다. 2) 개인 스킬 폴더(`skills`)가 세션 중에 처음 생겼다면 세션 안에서 `/reload-skills`를 실행하거나 새로 엽니다. 3) 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
+| `더 높은 버전 ... 이미 설치돼 있어 건너뜁니다` 로그 | 다른 프로젝트가 더 높은 버전의 스킬을 설치한 상태입니다. 개인 폴더는 PC에 하나라 낮은 버전으로 덮어쓰지 않습니다. 이 프로젝트 버전으로 바꾸려면 **Reinstall Skill**을 씁니다 |
+| Windows에서 스킬 설치 실패 | Console의 `[UnityConv] 스킬 설치 실패` 메시지를 확인합니다. 백신이나 OneDrive가 `%USERPROFILE%\.claude` 폴더를 잠그고 있지 않은지 확인합니다 |
 | `UnityConv` 네임스페이스를 못 찾음 | 코드가 자체 `.asmdef` 안에 있다면 References에 `UnityConv`(Bases, Network)나 `UnityConv.UI`를 추가합니다 |
 | 같은 이름의 클래스가 두 개라는 에러 (`ButtonToggle` 등) | `com.jos.uguitemplate`가 아직 설치돼 있습니다. 지우세요 |
 | 샘플 플레이 중 `InvalidOperationException ... UnityEngine.Input class` | 아래 [샘플](#샘플)의 입력 설정 안내를 보세요 |
@@ -116,12 +124,12 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 스킬 파일 관리
 
-- `.claude/skills/code-conv/`는 **패키지가 만드는 폴더**입니다. 직접 수정하지 마세요.
-  - 패키지 버전이나 내용이 바뀌면 통째로 다시 설치됩니다.
+- 개인 스킬 폴더의 `code-conv/`는 **패키지가 만드는 폴더**입니다. 직접 수정하지 마세요.
+  - 패키지 버전이나 내용이 바뀌면 통째로 다시 설치됩니다. 더 높은 버전이 이미 있으면 덮어쓰지 않습니다.
   - 프로젝트마다 다른 내용은 프로젝트 `CLAUDE.md`의 `code-conv 프로젝트 설정` 섹션에 둡니다.
-- 폴더 안에 `.gitignore`(`*`)가 같이 생겨서 git에 올라가지 않습니다. 팀원은 각자 Unity를 열 때 설치됩니다.
-- 다시 설치하려면 **Tools > UnityConv > Reinstall Skill**을 씁니다.
-- 직접 복사해 둔 예전 `code-conv` 폴더가 있으면 `.claude/code-conv.backup-날짜/`로 옮겨집니다. 이전 이름인 `df-clean-code` 폴더가 남아 있으면 Console에 삭제 안내가 나옵니다.
+- 프로젝트 git에는 아무것도 생기지 않습니다. 팀원은 각자 Unity를 열 때 자기 PC에 설치됩니다.
+- 다시 설치하려면 **Tools > UnityConv > Reinstall Skill**, 폴더를 열려면 **Tools > UnityConv > Open Skill Folder**를 씁니다.
+- 직접 만든 `code-conv` 폴더가 있으면 지우지 않고 `.claude/code-conv.backup-날짜/`로 옮깁니다. 이전 이름인 `df-clean-code` 폴더가 남아 있으면 Console에 삭제 안내가 나옵니다.
 
 ---
 

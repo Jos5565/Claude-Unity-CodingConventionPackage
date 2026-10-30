@@ -5,7 +5,7 @@ Manager / UI / Data / Service 구조의 공용 base 코드, Network, UI 컴포�
 - `UnityConv.Bases`: `ManagerBase`, `UIBase<TData>`, `PopupService`
 - `UnityConv.Network`: `APIService`, `APIStore`, `APIResponse<T>`, `NetworkManager`
 - `UnityConv.UI`: `ButtonToggle`, `RoundImage`
-- Unity를 열면 스킬이 git 루트의 `.claude/skills/code-conv/`에 자동으로 설치됩니다. Unity-MCP 설치 여부도 묻습니다.
+- Unity를 열면 스킬이 개인 스킬 폴더(macOS `~/.claude/skills/code-conv/`, Windows `%USERPROFILE%\.claude\skills\code-conv\`)에 자동으로 설치됩니다. Claude Code를 어느 폴더에서 열어도 `/code-conv`가 보입니다. Unity-MCP 설치 여부도 묻습니다.
 
 설치와 사용법: https://github.com/Jos5565/Claude-Unity-CodingConventionPackage
 서드파티 라이선스: `Third Party Notices.md`
