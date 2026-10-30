@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1c5896890dcc45568328daed5ab5bf3, type: 3}
+  m_Name: APIStore
+  m_EditorClassIdentifier: UnityConv::UnityConv.Network.APIStore
+  ServerUrl: http://localhost
+  TokenReissuePath: /api/auth/refresh/tokenReissue.json
+  apiUrls:
+  - Name: login
+    Url: /api/auth/login.json
+  - Name: logout
+    Url: /api/auth/logout.json
+  - Name: assetList
+    Url: /api/assets/list.json
+  - Name: assetDetail
+    Url: /api/assets/{0}.json
+  - Name: assetFiles
+    Url: /api/assets/{0}/files.json
+  - Name: assetFileDownload
+    Url: /api/assets/files/{0}/download.file

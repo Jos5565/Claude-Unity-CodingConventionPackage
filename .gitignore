@@ -1,0 +1,36 @@
+# Unity (개발용 프로젝트: UnityCodingConvention/)
+UnityCodingConvention/[Ll]ibrary/
+UnityCodingConvention/[Tt]emp/
+UnityCodingConvention/[Oo]bj/
+UnityCodingConvention/[Bb]uild/
+UnityCodingConvention/[Bb]uilds/
+UnityCodingConvention/[Ll]ogs/
+UnityCodingConvention/[Uu]ser[Ss]ettings/
+UnityCodingConvention/[Mm]emoryCaptures/
+UnityCodingConvention/[Rr]ecordings/
+UnityCodingConvention/Assets/Samples/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code 로컬 설정 (스킬은 패키지 Skill~ 가 원본, .claude/skills/code-conv 는 설치 도구가 생성)
+.claude/settings.local.json
