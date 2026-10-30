@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5449542053252283211}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0109440f99f644fa8390a4d2a55e826, type: 3}
+  m_Script: {fileID: 11500000, guid: 110b38356739456dae037077a6f2c43b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityConv::UnityConv.Network.NetworkManager
-  store: {fileID: 11400000, guid: 8976af7029ceb4171a26c5ebb903105b, type: 2}
+  store: {fileID: 11400000, guid: 3bb6c180c25443b6a82c03333a17b242, type: 2}

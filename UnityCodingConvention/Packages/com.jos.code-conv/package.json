@@ -1,6 +1,6 @@
 {
   "name": "com.jos.code-conv",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Unity Code Convention",
   "description": "Manager / UI / Data / Service 구조의 공용 base 코드(ManagerBase, UIBase, PopupService, APIService)와 Claude Code 스킬(/code-conv)을 함께 배포합니다. 설치하면 스킬이 프로젝트의 .claude/skills/code-conv에 자동으로 설치됩니다.",
   "unity": "2022.3",

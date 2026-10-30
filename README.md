@@ -18,7 +18,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.code-conv#v1.0.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.code-conv#v1.0.1
 ```
 
 ### 준비
@@ -38,7 +38,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.code-conv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.code-conv#v1.0.0",
+    "com.jos.code-conv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.code-conv#v1.0.1",
     ...
   }
 }
@@ -71,10 +71,10 @@ git 루트에서 Claude Code를 **새로** 엽니다. 스킬 목록은 세션을
 
 ## 업데이트
 
-주소 끝의 `#v1.0.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v1.0.1`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 1. [Releases / Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
-2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v1.0.0` → `#v1.1.0`
+2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v1.0.1` → `#v1.1.0`
 3. Unity로 돌아오면 새 버전을 받고, 스킬도 새 버전으로 다시 설치됩니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
@@ -190,4 +190,5 @@ Claude-Unity-CodingConventionPackage/
 ### 릴리스 방법
 1. `package.json`의 `version`을 올립니다.
 2. Unity로 열어 새 파일의 `.meta`가 생겼는지 확인합니다. git URL로 설치된 패키지는 `.meta`가 없는 파일을 무시합니다.
+   - 다른 프로젝트에서 가져온 파일은 `.meta`를 같이 복사하지 마세요. GUID가 원래 프로젝트와 겹치면, 설치한 쪽에서 `GUID ... conflicts with` 오류가 나고 그 파일이 무시됩니다.
 3. 커밋하고 `vX.Y.Z` 태그를 붙여 푸시합니다.
