@@ -109,7 +109,11 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
     protected override void OnClosed() { /* 리스너 해제 */ }
     protected override void ResetView() { SetInfoOpen(false); }
     public override void SetData(RobotDetailData detail) { ... }
-    private void OnClickWorkStatusButton() => Manager?.OpenWorkStatus(_robotName);
+    private void OnClickWorkStatusButton()
+    {
+        // Manager는 MonoBehaviour라 ?. 대신 != null (Unity fake null)
+        if (Manager != null) Manager.OpenWorkStatus(_robotName);
+    }
 }
 ```
 

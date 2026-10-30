@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.1
 ```
 
 ### 준비
@@ -41,7 +41,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.1",
     ...
   }
 }
@@ -92,10 +92,10 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.0.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.0.1`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 1. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
-2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.0.0` → `#v2.1.0`
+2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.0.1` → `#v2.1.0`
 3. Unity로 돌아오면 새 버전을 받고, 스킬도 새 버전으로 다시 설치됩니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
@@ -188,7 +188,7 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 ```csharp
 using UnityConv.UI;
 
-toggle_tab.onValueChanged.AddListener(isOn => { if (isOn) Manager?.RequestTab(TabType.Week); });
+toggle_tab.onValueChanged.AddListener(isOn => { if (isOn && Manager != null) Manager.RequestTab(TabType.Week); });
 toggle_tab.SetIsOnWithoutNotify(true);              // 이벤트 없이 값만 변경 (그래픽은 갱신)
 ButtonToggle selected = group_tab.GetFirstActiveButtonToggle();
 ```
