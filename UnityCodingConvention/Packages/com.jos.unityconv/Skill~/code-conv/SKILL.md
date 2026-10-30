@@ -27,13 +27,14 @@ $ARGUMENTS
    - 수정 금지 폴더 (서드파티, 다른 팀 소유)
    - 기준 예시 (이미 이 구조로 만든 화면)
    - 이번 정리에서 제외할 것 (다른 씬이 쓰는 타입 등)
-3. **Base 코드**: `com.jos.code-conv` 패키지가 제공한다. 프로젝트에 복사하거나 새로 만들지 않는다.
-   - `Packages/manifest.json`에 `com.jos.code-conv`가 없으면 작업 전에 사용자에게 설치를 안내한다.
+3. **Base 코드**: `com.jos.unityconv` 패키지가 제공한다. 프로젝트에 복사하거나 새로 만들지 않는다.
+   - `Packages/manifest.json`에 `com.jos.unityconv`가 없으면 작업 전에 사용자에게 설치를 안내한다. 예전 이름 `com.jos.code-conv`가 있으면 교체를 안내한다.
    - Bases: `using UnityConv.Bases;` (`ManagerBase`, `UIBase`, `UIBase<TData>`, `PopupService`)
    - Network: `using UnityConv.Network;` (`APIService`, `APIStore`, `APIResponse<T>`, `NetworkManager`)
+   - UI: `using UnityConv.UI;` (`ButtonToggle`, `RoundImage`, ToggleGroup 확장)
    - 팝업은 `UIBase.Show()` 기본값으로 `PopupService.Push(this)`가 연다. 닫기는 `PopupService.Close(this)`, 뒤로 가기는 `PopupService.Back()`. `PopupService`는 static 전역이라 씬에 오브젝트를 두지 않는다.
    - 프로젝트에 이미 같은 이름의 base 클래스(전역 네임스페이스)가 있으면 섞어 쓰지 않는다. 화면 단위로 패키지 클래스로 옮길지 사용자에게 확인한다.
-   - 패키지 코드(`Packages/com.jos.code-conv`, `Library/PackageCache`)는 수정하지 않는다. 기능이 부족하면 사용자에게 알린다.
+   - 패키지 코드(`Packages/com.jos.unityconv`, `Library/PackageCache`)는 수정하지 않는다. 기능이 부족하면 사용자에게 알린다.
 4. Unity MCP를 쓰면 프로젝트 CLAUDE.md의 인스턴스 고정 규칙을 먼저 따른다.
 
 ## 1. 설계 개요
@@ -122,6 +123,14 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 - `IXxxDataSource` + `XxxSampleSource` (샘플 JSON, 서버와 같은 응답 래퍼 형식) + `XxxApiSource` (서버 통신 클래스).
 - Manager만 사용. 실패 / 취소 시 null. 조건은 명시적 인자로 받고 `CancellationToken`을 마지막 인자로 받는다.
 - 서버 통신 클래스에 취소 지원이 없으면 선택 인자 `CancellationToken cancellationToken = default`만 추가한다 (기존 호출 유지, 취소 시 null + 에러 로그 없음). 수정 금지 폴더면 사용자에게 먼저 확인.
+
+### UI 컴포넌트 (패키지 제공)
+- 버튼과 토글은 `ButtonToggle`을 쓴다. 모드(Button / Toggle)는 인스펙터 툴바로 정한다.
+  - Button 모드: `onClick`. Toggle 모드: `onValueChanged(bool)`, `isOn`, `group`(ToggleGroup).
+  - On/Off 모습은 `Off/On Color`, `Off/On Sprite`로 정한다. On Sprite가 비어 있으면 색만 바뀐다. 바꾸는 대상은 Target Graphic이다.
+  - 값을 이벤트 없이 바꿀 때는 `SetIsOnWithoutNotify`. 그룹에서 켜진 토글 조회는 `group.ActiveButtonToggles()`, `group.AnyButtonTogglesOn()`.
+  - XXXUI는 `OnOpened`에서 `onClick` / `onValueChanged`에 리스너를 등록하고 `OnClosed`에서 해제한다.
+- 둥근 모서리 이미지는 `RoundImage`를 쓴다. 새로 만들 때는 메뉴 GameObject > UI (Canvas) > Button Toggle / Round Image.
 
 ## 3. 코드 컨벤션 (공통)
 - 필드는 `[SerializeField] private` + 타입 접두사(`text_x`, `button_x`, `ui_x`, `manager_x`), `[Header]`로 묶는다.

@@ -1,0 +1,21 @@
+{
+    "name": "UnityConv.UI.Editor",
+    "rootNamespace": "UnityConv.UI.EditorTools",
+    "references": [
+        "UnityConv.UI",
+        "Nobi.UiRoundedCorners",
+        "UnityEngine.UI",
+        "UnityEditor.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

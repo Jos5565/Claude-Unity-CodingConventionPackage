@@ -110,7 +110,7 @@ namespace UnityConv.Editor
             }
 
             CopyDirectory(source, target);
-            File.WriteAllText(Path.Combine(target, ".gitignore"), "# com.jos.code-conv 패키지가 설치한 폴더, 직접 수정하지 말고 패키지에서 업데이트\n*\n");
+            File.WriteAllText(Path.Combine(target, ".gitignore"), "# com.jos.unityconv 패키지가 설치한 폴더, 직접 수정하지 말고 패키지에서 업데이트\n*\n");
             File.WriteAllText(stampPath, stamp);
             Debug.Log($"{LogTag} /{SkillName} 스킬 설치 (v{package.version}): {target}");
 

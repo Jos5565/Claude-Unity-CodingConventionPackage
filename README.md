@@ -1,15 +1,18 @@
-# Unity Code Convention (`com.jos.code-conv`)
+# UnityConv (`com.jos.unityconv`)
 
 Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코드를 만들기 위한 패키지입니다.
-설치 한 번으로 아래 세 가지가 같이 들어옵니다.
+설치 한 번으로 아래 네 가지가 같이 들어옵니다.
 
 | 구성 | 내용 |
 |---|---|
 | **Base 코드** | `ManagerBase`, `UIBase<TData>`, `PopupService` (`UnityConv.Bases`) |
 | **Network 코드** | `APIService`, `APIStore`, `APIResponse<T>`, `NetworkManager` (`UnityConv.Network`) |
+| **UI 컴포넌트** | `ButtonToggle`(버튼 + 토글), `RoundImage`(둥근 모서리 이미지) (`UnityConv.UI`) |
 | **Claude Code 스킬** | `/code-conv` 명령어. 이 구조로 코드를 새로 만들거나 정리할 때 사용 |
 
 설치하면 [Unity-MCP](https://github.com/CoplayDev/unity-mcp)를 같이 설치할지도 묻습니다. Claude Code가 Unity 에디터를 직접 다룰 때 필요합니다.
+
+> **v1(`com.jos.code-conv`)이나 `com.jos.uguitemplate`를 쓰고 있다면** 아래 [v1에서 옮기기](#v1에서-옮기기)를 먼저 보세요.
 
 ---
 
@@ -18,12 +21,12 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.code-conv#v1.0.1
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.0
 ```
 
 ### 준비
 - **git 설치**: Unity가 git 명령으로 패키지를 받습니다. 터미널에서 `git --version`이 실행되는지 확인하세요. git을 새로 설치했다면 Unity Hub와 에디터를 다시 시작해야 합니다.
-- **Unity 2022.3 이상**
+- **Unity 6 (6000.0) 이상**: UI 컴포넌트가 `com.unity.ugui` 2.0.0을 씁니다. 이 의존성은 자동으로 설치됩니다.
 
 ### 1. 패키지 추가 (둘 중 하나)
 
@@ -38,7 +41,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.code-conv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.code-conv#v1.0.1",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.0.0",
     ...
   }
 }
@@ -69,12 +72,27 @@ git 루트에서 Claude Code를 **새로** 엽니다. 스킬 목록은 세션을
 
 ---
 
+## v1에서 옮기기
+
+v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 바뀌었습니다. 예전에 따로 배포하던 UI 라이브러리(`com.jos.uguitemplate`)도 이 패키지에 들어왔습니다.
+
+1. `manifest.json`에서 예전 줄을 **지웁니다**.
+   - `"com.jos.code-conv": ...`
+   - `"com.jos.uguitemplate": ...` (쓰고 있었다면)
+2. 위 [설치](#설치)의 새 줄을 추가합니다.
+3. `com.jos.uguitemplate`를 쓰던 코드는 `using UGUICUSTOM;`을 `using UnityConv.UI;`로 바꿉니다.
+   - 두 패키지를 같이 설치하면 같은 이름의 클래스가 두 개가 되어 컴파일 에러가 납니다. 반드시 예전 패키지를 먼저 지우세요.
+   - `ButtonToggle`은 v2에서 이벤트 이름이 `OnClick` → `onClick`, `IsOn` → `onValueChanged`로 바뀌었습니다. 씬과 프리팹에 저장된 연결은 그대로 유지됩니다. 코드에서 직접 부르던 곳만 바꾸면 됩니다.
+4. `.claude/skills/code-conv/`는 새 패키지가 다시 설치합니다. 따로 할 일은 없습니다.
+
+---
+
 ## 업데이트
 
-주소 끝의 `#v1.0.1`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.0.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
-1. [Releases / Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
-2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v1.0.1` → `#v1.1.0`
+1. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
+2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.0.0` → `#v2.1.0`
 3. Unity로 돌아오면 새 버전을 받고, 스킬도 새 버전으로 다시 설치됩니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
@@ -86,7 +104,9 @@ git 루트에서 Claude Code를 **새로** 엽니다. 스킬 목록은 세션을
 | `No 'git' executable was found` | git이 설치돼 있는지 확인하고, 설치한 뒤 Unity Hub와 에디터를 다시 시작합니다 |
 | `Unable to find package` / 404 | 주소의 `?path=`와 `#태그`가 정확한지 확인합니다 |
 | `/code-conv`가 안 보임 | Console에 `[UnityConv]` 설치 로그가 있는지 봅니다. Claude Code를 **git 루트에서 새로** 열었는지 확인합니다. 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
-| `UnityConv` 네임스페이스를 못 찾음 | 코드가 자체 `.asmdef` 안에 있다면 References에 `UnityConv`를 추가합니다 |
+| `UnityConv` 네임스페이스를 못 찾음 | 코드가 자체 `.asmdef` 안에 있다면 References에 `UnityConv`(Bases, Network)나 `UnityConv.UI`를 추가합니다 |
+| 같은 이름의 클래스가 두 개라는 에러 (`ButtonToggle` 등) | `com.jos.uguitemplate`가 아직 설치돼 있습니다. 지우세요 |
+| 샘플 플레이 중 `InvalidOperationException ... UnityEngine.Input class` | 아래 [샘플](#샘플)의 입력 설정 안내를 보세요 |
 
 ---
 
@@ -151,25 +171,55 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 - 액세스 토큰이 만료되면(401/403) `APIStore.TokenReissuePath`로 재발급을 요청한 뒤 한 번 재시도합니다. 경로를 비우면 재발급하지 않습니다.
 - 파일 응답의 확장자를 판별하려면 `APIService.ExtensionDetector`에 판별 함수를 등록합니다. 판별 함수의 예시는 샘플에 있습니다.
 
+### UI 컴포넌트
+메뉴 **GameObject > UI (Canvas) > Button Toggle / Round Image**로 만듭니다. Canvas가 없으면 같이 만듭니다.
+
+**ButtonToggle**: 하나의 컴포넌트로 버튼과 토글을 모두 씁니다. 인스펙터 위쪽 툴바에서 모드를 고릅니다.
+
+| 모드 | 이벤트 | 설명 |
+|---|---|---|
+| Button | `onClick` | 일반 버튼 |
+| Toggle | `onValueChanged(bool)` | `isOn`, `group`(ToggleGroup)을 씁니다. 같은 그룹에서는 하나만 켜집니다. 그룹의 `Allow Switch Off`를 끄면 마지막 하나는 꺼지지 않습니다 |
+
+```csharp
+using UnityConv.UI;
+
+toggle_tab.onValueChanged.AddListener(isOn => { if (isOn) Manager?.RequestTab(TabType.Week); });
+toggle_tab.SetIsOnWithoutNotify(true);              // 이벤트 없이 값만 변경 (그래픽은 갱신)
+ButtonToggle selected = group_tab.GetFirstActiveButtonToggle();
+```
+
+- On/Off 모습은 `Off/On Color`와 `Off/On Sprite`로 정합니다. `On Sprite`가 비어 있으면 색만 바뀝니다.
+- 컴포넌트를 추가할 때 현재 모습이 Off 상태로 저장됩니다.
+- Toggle에서 Button으로 바꾸면 Off 모습으로 돌아가고, 그룹 처리에서 빠집니다.
+
+**RoundImage**: 모서리 반경을 지정할 수 있는 Image입니다. 내부에서 [Unity UI Rounded Corners](https://github.com/kirevdokimov/Unity-UI-Rounded-Corners)(MIT, `Third Party Notices.md` 참고) 셰이더를 씁니다.
+- 셰이더를 `Shader.Find`로 불러옵니다. 빌드에서 둥근 모서리가 안 보이면 **Project Settings > Graphics > Always Included Shaders**에 `UI/RoundedCorners/RoundedCorners`를 추가하세요.
+
 ### 샘플
-**Package Manager > Unity Code Convention > Samples > Network Sample > Import**
+**Package Manager > UnityConv > Samples**에서 필요한 샘플만 **Import**합니다.
 
-| 파일 | 내용 |
-|---|---|
-| `Network Sample.unity`, `NetworkManager.prefab` | NetworkManager 배치 예시 |
-| `APIStore.asset` | 샘플 서버 주소와 API 목록 |
-| `FileExtensionDecoder.cs` | 파일 확장자 판별 예시. 임포트하면 `APIService.ExtensionDetector`에 자동 등록됩니다 |
+| 샘플 | 파일 | 내용 |
+|---|---|---|
+| Network Sample | `Network Sample.unity`, `NetworkManager.prefab` | NetworkManager 배치 예시 |
+| | `APIStore.asset` | 샘플 서버 주소와 API 목록 |
+| | `FileExtensionDecoder.cs` | 파일 확장자 판별 예시. 임포트하면 `APIService.ExtensionDetector`에 자동 등록됩니다 |
+| UGUI Sample | `Sample Scene.unity` | 같은 그룹의 ButtonToggle 4개. 이벤트가 `ButtonToggleSampleLog`에 연결돼 있어 콘솔로 확인할 수 있습니다 |
+| | `Round Image Demo.unity`, `Round Image.prefab`, `Button Toggle.prefab` | RoundImage, ButtonToggle 예시 |
 
-샘플 씬의 라이트는 URP 컴포넌트를 씁니다. URP가 아닌 프로젝트에서는 Missing Script 경고가 뜰 수 있습니다.
+- 샘플 씬의 라이트는 URP 컴포넌트를 씁니다. URP가 아닌 프로젝트에서는 Missing Script 경고가 뜰 수 있습니다.
+- UGUI Sample의 EventSystem은 **Input System**(`InputSystemUIInputModule`)을 씁니다.
+  - Input System 패키지가 없거나 예전 Input만 쓰는 프로젝트에서는, 씬의 EventSystem에서 입력 모듈을 `StandaloneInputModule`로 바꾸세요.
+  - 반대로 Input System만 쓰는 프로젝트에서 `StandaloneInputModule`을 쓰면 플레이 중 `InvalidOperationException`이 납니다.
 
 ---
 
 ## 주의
 
-- **asmdef**: 패키지 어셈블리 이름은 `UnityConv`(런타임)입니다. 기본 프로젝트 코드(Assembly-CSharp)는 자동으로 참조합니다. 프로젝트 코드가 자체 `.asmdef`를 쓰면 그 asmdef의 References에 `UnityConv`를 추가하세요.
+- **asmdef**: 패키지 어셈블리는 `UnityConv`(Bases, Network)와 `UnityConv.UI`(UI 컴포넌트)입니다. 기본 프로젝트 코드(Assembly-CSharp)는 자동으로 참조합니다. 프로젝트 코드가 자체 `.asmdef`를 쓰면 그 asmdef의 References에 직접 추가하세요.
 - **이름 충돌**: 프로젝트에 이미 전역 네임스페이스의 `ManagerBase`, `UIBase`가 있어도 컴파일 에러는 나지 않습니다. 다만 섞어 쓰면 헷갈리니 화면 단위로 패키지 클래스로 옮기는 것을 권장합니다.
 - **Unity-MCP 버전**: 설치 도구는 `v9.7.3` 태그로 고정해서 설치합니다. 다른 버전을 쓰려면 `manifest.json`에서 직접 바꾸면 됩니다.
-- **지원 버전**: Unity 2022.3 이상. 개발과 테스트는 Unity 6000.3에서 했습니다.
+- **지원 버전**: Unity 6 (6000.0) 이상. 개발과 테스트는 Unity 6000.3에서 했습니다.
 
 ---
 
@@ -179,12 +229,17 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 Claude-Unity-CodingConventionPackage/
  ├ README.md
  └ UnityCodingConvention/                     개발, 테스트용 Unity 프로젝트
-     └ Packages/com.jos.code-conv/            ← 배포되는 패키지
+     └ Packages/com.jos.unityconv/            ← 배포되는 패키지
          ├ package.json
-         ├ Runtime/   (UnityConv.asmdef)       Bases/, Network/
-         ├ Editor/    (UnityConv.Editor.asmdef) SkillInstaller.cs
+         ├ Third Party Notices.md
+         ├ Runtime/   UnityConv.asmdef         Bases/, Network/
+         │            UI/ (UnityConv.UI.asmdef) ButtonToggle, RoundImage
+         │            ThirdParty/UiRoundedCorners/
+         ├ Editor/    UnityConv.Editor.asmdef  SkillInstaller.cs
+         │            UI/ (UnityConv.UI.Editor.asmdef) 인스펙터, 메뉴
+         │            ThirdParty/UiRoundedCorners/
          ├ Skill~/code-conv/SKILL.md          스킬 원본 (Unity가 임포트하지 않는 폴더)
-         └ Samples~/NetworkSample/            샘플 (Package Manager에서 Import)
+         └ Samples~/NetworkSample/, UGUISample/  샘플 (Package Manager에서 Import)
 ```
 
 ### 릴리스 방법
