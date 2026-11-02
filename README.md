@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.2.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.3.0
 ```
 
 ### 준비
@@ -42,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.2.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.3.0",
     ...
   }
 }
@@ -99,11 +99,18 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.2.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.3.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
-1. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
-2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.2.0` → `#v2.3.0`
-3. Unity로 돌아오면 새 버전을 받고, 스킬도 새 버전으로 다시 설치됩니다.
+Package Manager의 **Update** 버튼은 git 패키지에서 같은 태그를 다시 받기만 해서 새 버전으로 올라가지 않습니다. 대신 패키지의 업데이트 메뉴를 씁니다 (v2.3.0부터).
+
+1. **Tools > UnityConv > Check for Updates**를 누릅니다. Unity를 열 때도 하루에 한 번 자동으로 확인합니다.
+2. 새 버전이 있으면 `v2.3.0 → v2.4.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
+   - **이 버전 건너뛰기**를 고르면 그 버전은 자동 확인에서 다시 묻지 않습니다. 메뉴로는 언제든 확인할 수 있습니다.
+3. 스킬도 새 버전으로 다시 설치됩니다.
+
+새 버전은 저장소의 `vX.Y.Z` 태그를 `git ls-remote`로 읽어서 찾습니다. 패키지를 받을 때와 같은 git 로그인 정보를 쓰므로 Private 저장소에서도 동작합니다.
+
+v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.3.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
 
@@ -113,6 +120,7 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 |---|---|
 | `No 'git' executable was found` | git이 설치돼 있는지 확인하고, 설치한 뒤 Unity Hub와 에디터를 다시 시작합니다 |
 | `Unable to find package` / 404 | 주소의 `?path=`와 `#태그`가 정확한지 확인합니다 |
+| 업데이트 확인 실패 (`git ls-remote`) | 터미널에서 `git ls-remote --tags <저장소 주소>`가 되는지 확인합니다. Private 저장소면 git 로그인이 필요합니다 |
 | `/code-conv`가 안 보임 | 1) Console에 `[UnityConv] /code-conv 스킬 설치` 로그가 있는지, **Tools > UnityConv > Open Skill Folder**로 폴더가 열리는지 확인합니다. 2) 개인 스킬 폴더(`skills`)가 세션 중에 처음 생겼다면 세션 안에서 `/reload-skills`를 실행하거나 새로 엽니다. 3) 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
 | `더 높은 버전 ... 이미 설치돼 있어 건너뜁니다` 로그 | 다른 프로젝트가 더 높은 버전의 스킬을 설치한 상태입니다. 개인 폴더는 PC에 하나라 낮은 버전으로 덮어쓰지 않습니다. 이 프로젝트 버전으로 바꾸려면 **Reinstall Skill**을 씁니다 |
 | Windows에서 스킬 설치 실패 | Console의 `[UnityConv] 스킬 설치 실패` 메시지를 확인합니다. 백신이나 OneDrive가 `%USERPROFILE%\.claude` 폴더를 잠그고 있지 않은지 확인합니다 |
@@ -259,4 +267,4 @@ Claude-Unity-CodingConventionPackage/
 1. `package.json`의 `version`을 올립니다.
 2. Unity로 열어 새 파일의 `.meta`가 생겼는지 확인합니다. git URL로 설치된 패키지는 `.meta`가 없는 파일을 무시합니다.
    - 다른 프로젝트에서 가져온 파일은 `.meta`를 같이 복사하지 마세요. GUID가 원래 프로젝트와 겹치면, 설치한 쪽에서 `GUID ... conflicts with` 오류가 나고 그 파일이 무시됩니다.
-3. 커밋하고 `vX.Y.Z` 태그를 붙여 푸시합니다.
+3. 커밋하고 `vX.Y.Z` 태그를 붙여 푸시합니다. 업데이트 메뉴는 이 형식의 태그만 새 버전으로 인식합니다 (`package.json`의 version과 같게).
