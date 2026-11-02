@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 namespace UnityConv.Network
 {
     /// <summary>
-    /// 서버 쿠키(Set-Cookie, 예: refreshToken)를 보관하고, 이후 요청에 Cookie 헤더로 붙입니다.
+    /// 서버 쿠키(Set-Cookie, 예: 세션 쿠키)를 보관하고, 이후 요청에 Cookie 헤더로 붙입니다.
     /// </summary>
     public static class CookieStore
     {

@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.1.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.2.0
 ```
 
 ### 준비
@@ -42,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.1.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.2.0",
     ...
   }
 }
@@ -99,10 +99,10 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.1.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.2.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 1. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 새 버전을 확인합니다.
-2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.1.0` → `#v2.2.0`
+2. `manifest.json`의 주소 끝을 바꿉니다. 예: `#v2.2.0` → `#v2.3.0`
 3. Unity로 돌아오면 새 버전을 받고, 스킬도 새 버전으로 다시 설치됩니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
@@ -180,7 +180,8 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 - 씬에 `NetworkManager`를 두고 `APIStore` 에셋(서버 주소, API 이름과 경로 목록)을 연결합니다.
 - 그다음 `APIService.GetAsync<T>("apiName", keys, token)`처럼 API 이름으로 호출합니다.
 - 응답 형식은 `{ success, code, message, data }`(`APIResponse<T>`)를 기준으로 합니다.
-- 액세스 토큰이 만료되면(401/403) `APIStore.TokenReissuePath`로 재발급을 요청한 뒤 한 번 재시도합니다. 경로를 비우면 재발급하지 않습니다.
+- 서버가 보낸 쿠키(Set-Cookie)는 보관했다가 이후 요청에 붙입니다.
+- v2.2.0부터 액세스 토큰(`APIService.AccessToken`, Authorization 헤더, 토큰 재발급)은 지원하지 않습니다. 필요하면 프로젝트에서 직접 헤더를 붙이세요.
 - 파일 응답의 확장자를 판별하려면 `APIService.ExtensionDetector`에 판별 함수를 등록합니다. 판별 함수의 예시는 샘플에 있습니다.
 
 ### UI 컴포넌트

@@ -17,10 +17,6 @@ namespace UnityConv.Network
         private const int DefaultTimeoutSec = 10;
         private const int DownloadTimeoutSec = 180;
 
-        /// <summary>로그인으로 받은 액세스 토큰. 모든 요청에 Authorization: Bearer 로 전송됩니다.</summary>
-        public static string AccessToken { get; set; }
-        private static Task<bool> reissueTask;
-
         /// <summary>파일 응답의 확장자 판별 (없으면 extension은 null), 프로젝트에서 등록합니다.</summary>
         public static Func<byte[], string> ExtensionDetector { get; set; }
 
@@ -42,7 +38,7 @@ namespace UnityConv.Network
             };
             request.SetRequestHeader("Content-Type", "application/octet-stream");
             request.SetRequestHeader("Accept", "application/json");
-            ApplyAuth(request);
+            CookieStore.Apply(request);
 
             await request.SendWebRequest();
             CookieStore.Capture(request);
@@ -360,19 +356,8 @@ namespace UnityConv.Network
 
         #region =========== SAFETY ===========
 
-        /// <summary>취소되면 요청을 중단하고 canceled 결과를 반환합니다 (토큰 재발급은 취소하지 않음).</summary>
+        /// <summary>연결 실패만 재시도, 취소되면 요청을 중단하고 canceled 결과를 반환합니다.</summary>
         public static async Task<APIResult> SendWithRetryAsync(Func<UnityWebRequest> factory, int timeoutSeconds, bool binary = false, CancellationToken cancellationToken = default)
-        {
-            APIResult result = await SendOnceAsync(factory, timeoutSeconds, binary, cancellationToken);
-
-            // 액세스 토큰 만료 → refreshToken 쿠키로 재발급 후 1회 재시도
-            if (!result.canceled && IsUnauthorized(result.statusCode) && !string.IsNullOrEmpty(AccessToken) && CanReissue() && await ReissueTokenAsync())
-                result = await SendOnceAsync(factory, timeoutSeconds, binary, cancellationToken);
-
-            return result;
-        }
-
-        private static async Task<APIResult> SendOnceAsync(Func<UnityWebRequest> factory, int timeoutSeconds, bool binary, CancellationToken cancellationToken = default)
         {
             for (int attempt = 1; attempt <= MaxAttempts; attempt++)
             {
@@ -381,7 +366,7 @@ namespace UnityConv.Network
 
                 using UnityWebRequest www = factory();
                 www.timeout = timeoutSeconds;
-                ApplyAuth(www);
+                CookieStore.Apply(www);
                 using (cancellationToken.Register(www.Abort))
                 {
                     await www.SendWebRequest();
@@ -425,8 +410,6 @@ namespace UnityConv.Network
             return new APIResult { ok = false, error = "재시도 횟수 초과" };
         }
 
-        private static bool CanReissue() => store != null && !string.IsNullOrEmpty(store.TokenReissuePath);
-
         /// <summary>등록된 API 이름으로 URL 생성, APIStore가 없거나 이름이 없으면 null</summary>
         private static string BuildUrl(string urlName, object[] keys)
         {
@@ -451,56 +434,6 @@ namespace UnityConv.Network
 
         private static APIResult CanceledResult() => new APIResult { ok = false, canceled = true, error = "요청 취소" };
 
-        private static bool IsUnauthorized(long statusCode) => statusCode == 401 || statusCode == 403;
-
-        private static void ApplyAuth(UnityWebRequest request)
-        {
-            CookieStore.Apply(request);
-            if (!string.IsNullOrEmpty(AccessToken))
-                request.SetRequestHeader("Authorization", $"Bearer {AccessToken}");
-        }
-
-        /// <summary>refreshToken 쿠키로 액세스 토큰을 재발급합니다. 동시에 여러 요청이 만료돼도 재발급은 한 번만 수행됩니다.</summary>
-        public static Task<bool> ReissueTokenAsync()
-        {
-            return reissueTask ??= ReissueTokenInternalAsync();
-        }
-
-        private static async Task<bool> ReissueTokenInternalAsync()
-        {
-            try
-            {
-                string url = store.DownloadUrl(store.TokenReissuePath);
-                APIResult result = await SendOnceAsync(() =>
-                {
-                    var www = new UnityWebRequest(url, UnityWebRequest.kHttpVerbPOST);
-                    www.downloadHandler = new DownloadHandlerBuffer();
-                    return www;
-                }, DefaultTimeoutSec, binary: false);
-
-                TokenReissueResponse parsed = result.ok ? ParseJson<TokenReissueResponse>(result.text) : null;
-                if (parsed == null || string.IsNullOrEmpty(parsed.accessToken))
-                {
-                    Debug.LogError($"[APIService] 토큰 재발급 실패 — 다시 로그인하세요. ({result.statusCode})");
-                    AccessToken = null;
-                    return false;
-                }
-
-                AccessToken = parsed.accessToken;
-                return true;
-            }
-            finally
-            {
-                reissueTask = null;
-            }
-        }
-
-        [Serializable]
-        private class TokenReissueResponse
-        {
-            public string accessToken;
-            public string message;
-        }
         public static Task<APIResult> PostJsonWithRetryAsync(string url, string jsonBody, int timeoutSeconds, CancellationToken cancellationToken = default)
         {
             byte[] body = Encoding.UTF8.GetBytes(jsonBody);

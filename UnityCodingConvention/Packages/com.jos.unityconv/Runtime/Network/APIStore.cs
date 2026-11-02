@@ -9,8 +9,6 @@ namespace UnityConv.Network
     public class APIStore : ScriptableObject
     {
         public string ServerUrl;
-        [Tooltip("액세스 토큰 만료(401/403) 시 재발급 요청 경로, 비우면 재발급하지 않음")]
-        public string TokenReissuePath = "/api/auth/refresh/tokenReissue.json";
         public List<APIUrl> apiUrls;
 
         public const string ResourceName = "APIConfig";

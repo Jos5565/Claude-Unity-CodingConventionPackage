@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: APIStore
   m_EditorClassIdentifier: UnityConv::UnityConv.Network.APIStore
   ServerUrl: http://localhost
-  TokenReissuePath: /api/auth/refresh/tokenReissue.json
   apiUrls:
   - Name: login
     Url: /api/auth/login.json

@@ -1915,6 +1915,11 @@ namespace UnityConv.UI
         public virtual float minWidth { get { return 0; } }
 
         /// <summary>
+        /// See ILayoutElement.maxWidth (UGUI 2.6+ 인터페이스 멤버, 이전 버전에서도 컴파일되도록 LayoutUtility.DefaultMaxSize 대신 같은 값 사용).
+        /// </summary>
+        public virtual float maxWidth { get { return float.PositiveInfinity; } }
+
+        /// <summary>
         /// If there is a sprite being rendered returns the size of that sprite.
         /// In the case of a slided or tiled sprite will return the calculated minimum size possible
         /// </summary>
@@ -1939,6 +1944,11 @@ namespace UnityConv.UI
         /// See ILayoutElement.minHeight.
         /// </summary>
         public virtual float minHeight { get { return 0; } }
+
+        /// <summary>
+        /// See ILayoutElement.maxHeight (UGUI 2.6+ 인터페이스 멤버).
+        /// </summary>
+        public virtual float maxHeight { get { return float.PositiveInfinity; } }
 
         /// <summary>
         /// If there is a sprite being rendered returns the size of that sprite.
