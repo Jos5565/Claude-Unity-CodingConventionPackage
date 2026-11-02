@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.3.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.4.0
 ```
 
 ### 준비
@@ -42,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.3.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.4.0",
     ...
   }
 }
@@ -99,18 +99,18 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.3.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.4.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 Package Manager의 **Update** 버튼은 git 패키지에서 같은 태그를 다시 받기만 해서 새 버전으로 올라가지 않습니다. 대신 패키지의 업데이트 메뉴를 씁니다 (v2.3.0부터).
 
 1. **Tools > UnityConv > Check for Updates**를 누릅니다. Unity를 열 때도 하루에 한 번 자동으로 확인합니다.
-2. 새 버전이 있으면 `v2.3.0 → v2.4.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
+2. 새 버전이 있으면 `v2.4.0 → v2.5.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
    - **이 버전 건너뛰기**를 고르면 그 버전은 자동 확인에서 다시 묻지 않습니다. 메뉴로는 언제든 확인할 수 있습니다.
 3. 스킬도 새 버전으로 다시 설치됩니다.
 
 새 버전은 저장소의 `vX.Y.Z` 태그를 `git ls-remote`로 읽어서 찾습니다. 패키지를 받을 때와 같은 git 로그인 정보를 쓰므로 Private 저장소에서도 동작합니다.
 
-v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.3.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
+v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.4.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
 
@@ -124,7 +124,7 @@ v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2
 | `/code-conv`가 안 보임 | 1) Console에 `[UnityConv] /code-conv 스킬 설치` 로그가 있는지, **Tools > UnityConv > Open Skill Folder**로 폴더가 열리는지 확인합니다. 2) 개인 스킬 폴더(`skills`)가 세션 중에 처음 생겼다면 세션 안에서 `/reload-skills`를 실행하거나 새로 엽니다. 3) 그래도 안 되면 **Tools > UnityConv > Reinstall Skill**을 실행합니다 |
 | `더 높은 버전 ... 이미 설치돼 있어 건너뜁니다` 로그 | 다른 프로젝트가 더 높은 버전의 스킬을 설치한 상태입니다. 개인 폴더는 PC에 하나라 낮은 버전으로 덮어쓰지 않습니다. 이 프로젝트 버전으로 바꾸려면 **Reinstall Skill**을 씁니다 |
 | Windows에서 스킬 설치 실패 | Console의 `[UnityConv] 스킬 설치 실패` 메시지를 확인합니다. 백신이나 OneDrive가 `%USERPROFILE%\.claude` 폴더를 잠그고 있지 않은지 확인합니다 |
-| `UnityConv` 네임스페이스를 못 찾음 | 코드가 자체 `.asmdef` 안에 있다면 References에 `UnityConv`(Bases, Network)나 `UnityConv.UI`를 추가합니다 |
+| `UnityConv` 네임스페이스를 못 찾음 | 코드가 자체 `.asmdef` 안에 있다면 References에 `UnityConv`(Bases, Network), `UnityConv.DI`, `UnityConv.UI` 중 필요한 것을 추가합니다 |
 | 같은 이름의 클래스가 두 개라는 에러 (`ButtonToggle` 등) | `com.jos.uguitemplate`가 아직 설치돼 있습니다. 지우세요 |
 | 샘플 플레이 중 `InvalidOperationException ... UnityEngine.Input class` | 아래 [샘플](#샘플)의 입력 설정 안내를 보세요 |
 
@@ -192,6 +192,37 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 - v2.2.0부터 액세스 토큰(`APIService.AccessToken`, Authorization 헤더, 토큰 재발급)은 지원하지 않습니다. 필요하면 프로젝트에서 직접 헤더를 붙이세요.
 - 파일 응답의 확장자를 판별하려면 `APIService.ExtensionDetector`에 판별 함수를 등록합니다. 판별 함수의 예시는 샘플에 있습니다.
 
+### DI (씬 단위 의존성 주입)
+`using UnityConv.DI;` 씬에 필요한 인스턴스(주로 DataSource)를 **Manager**의 `[Inject]` 필드에 넣습니다. Service는 지금처럼 static 클래스로 두고 DI로 넣지 않습니다.
+
+1. **Create > UnityConv > DI > Scene Binder**로 바인더 에셋을 만듭니다.
+   - **Classes**: `new`로 만들 클래스 (예: `RobotSampleSource`). 기본 생성자가 있는 일반 클래스만 넣습니다.
+   - **Assets**: 그대로 등록할 ScriptableObject (예: `APIStore`).
+   - 샘플용(`Sample Binder`)과 서버용(`Api Binder`)을 따로 만들면, 바인더만 바꿔 끼워 샘플 데이터와 서버를 오갈 수 있습니다.
+2. 씬에 빈 오브젝트를 만들고 **Scene Installer** 컴포넌트를 붙인 뒤 바인더를 연결합니다. 씬마다 하나만 둡니다.
+   - **Scene Objects**: 그대로 등록할 이 씬의 컴포넌트.
+3. Manager에서 `[Inject] private IRobotDataSource _source;`처럼 받습니다. 인터페이스로 받으면 바인더에 등록한 구현이 들어옵니다.
+
+```csharp
+public class RobotManager : ManagerBase
+{
+    [SerializeField] private RobotInfoUI ui_robotInfo;
+    [Inject] private IRobotDataSource _source;   // Sample Binder면 RobotSampleSource
+
+    public void OpenRobotInfo(string robotName)
+    {
+        if (_source == null || string.IsNullOrEmpty(robotName)) return;
+        Request(ui_robotInfo, token => _source.GetRobotAsync(robotName, token), robot => ui_robotInfo.Initialize(this, robot));
+    }
+}
+```
+
+- `SceneInstaller`는 다른 스크립트의 Awake보다 먼저 실행돼, **Awake에서부터** 주입된 값을 쓸 수 있습니다. 비활성 오브젝트와 부모 클래스의 private 필드도 채웁니다.
+- 컨테이너는 그 씬에서만 씁니다. 씬이 내려가면 같이 정리되고(바인더가 만든 인스턴스는 `IDisposable`이면 Dispose), `DontDestroyOnLoad` 하지 않습니다. Additive 씬도 각자의 SceneInstaller를 씁니다.
+- 실행 중에 만드는 프리팹은 `SceneInstaller.InstantiateAndInject(prefab, parent)`로 만들면 Awake 전에 주입됩니다. 이미 만든 오브젝트는 `SceneInstaller.Inject(gameObject)`.
+- **UI(`UIBase`)에는 `[Inject]`를 쓰지 않습니다.** 쓰면 주입하지 않고 에러 로그를 남깁니다. UI에 필요한 값은 Manager가 받아 `Initialize`로 넘깁니다.
+- 등록이 없는 필드는 경고 로그, 같은 인터페이스를 두 구현이 등록하면 먼저 등록한 것을 쓰고 경고합니다. 등록 로그를 보려면 `SceneContainer.LogEnabled = true`.
+
 ### UI 컴포넌트
 메뉴 **GameObject > UI (Canvas) > Button Toggle / Round Image**로 만듭니다. Canvas가 없으면 같이 만듭니다.
 
@@ -227,6 +258,8 @@ ButtonToggle selected = group_tab.GetFirstActiveButtonToggle();
 | | `FileExtensionDecoder.cs` | 파일 확장자 판별 예시. 임포트하면 `APIService.ExtensionDetector`에 자동 등록됩니다 |
 | UGUI Sample | `Sample Scene.unity` | 같은 그룹의 ButtonToggle 4개. 이벤트가 `ButtonToggleSampleLog`에 연결돼 있어 콘솔로 확인할 수 있습니다 |
 | | `Round Image Demo.unity`, `Round Image.prefab`, `Button Toggle.prefab` | RoundImage, ButtonToggle 예시 |
+| DI Sample | `DI Sample.unity` | SceneInstaller가 `RobotManager`에 `IRobotDataSource`를 주입. 플레이하면 샘플 데이터가 화면에 표시됩니다 |
+| | `Sample Binder.asset`, `Api Binder.asset` | SceneInstaller의 바인더를 `Api Binder`로 바꾸면 서버 조회(`RobotApiSource`)로 바뀝니다. APIStore에 `robotDetail` 경로가 필요합니다 |
 
 - 샘플 씬의 라이트는 URP 컴포넌트를 씁니다. URP가 아닌 프로젝트에서는 Missing Script 경고가 뜰 수 있습니다.
 - UGUI Sample의 EventSystem은 **Input System**(`InputSystemUIInputModule`)을 씁니다.
@@ -254,13 +287,14 @@ Claude-Unity-CodingConventionPackage/
          ├ package.json
          ├ Third Party Notices.md
          ├ Runtime/   UnityConv.asmdef         Bases/, Network/
+         │            DI/ (UnityConv.DI.asmdef) SceneInstaller, SceneBinder, [Inject]
          │            UI/ (UnityConv.UI.asmdef) ButtonToggle, RoundImage
          │            ThirdParty/UiRoundedCorners/
-         ├ Editor/    UnityConv.Editor.asmdef  SkillInstaller.cs
+         ├ Editor/    UnityConv.Editor.asmdef  SkillInstaller.cs, PackageUpdater.cs
          │            UI/ (UnityConv.UI.Editor.asmdef) 인스펙터, 메뉴
          │            ThirdParty/UiRoundedCorners/
          ├ Skill~/code-conv/SKILL.md          스킬 원본 (Unity가 임포트하지 않는 폴더)
-         └ Samples~/NetworkSample/, UGUISample/  샘플 (Package Manager에서 Import)
+         └ Samples~/NetworkSample/, UGUISample/, DISample/  샘플 (Package Manager에서 Import)
 ```
 
 ### 릴리스 방법

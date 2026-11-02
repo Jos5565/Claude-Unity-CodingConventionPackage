@@ -1,8 +1,8 @@
 {
   "name": "com.jos.unityconv",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "displayName": "UnityConv",
-  "description": "Manager / UI / Data / Service 구조의 공용 base 코드(ManagerBase, UIBase, PopupService), Network(APIService), UI 컴포넌트(ButtonToggle, RoundImage)와 Claude Code 스킬(/code-conv)을 함께 배포합니다. 설치하면 스킬이 개인 스킬 폴더(~/.claude/skills/code-conv, Windows는 %USERPROFILE%\\.claude\\skills\\code-conv)에 자동으로 설치됩니다.",
+  "description": "Manager / UI / Data / Service 구조의 공용 base 코드(ManagerBase, UIBase, PopupService), Network(APIService), 씬 단위 DI(SceneInstaller, [Inject]), UI 컴포넌트(ButtonToggle, RoundImage)와 Claude Code 스킬(/code-conv)을 함께 배포합니다. 설치하면 스킬이 개인 스킬 폴더(~/.claude/skills/code-conv, Windows는 %USERPROFILE%\\.claude\\skills\\code-conv)에 자동으로 설치됩니다.",
   "unity": "6000.0",
   "dependencies": {
     "com.unity.ugui": "2.0.0"
@@ -17,7 +17,8 @@
     "skill",
     "coding-convention",
     "mvp",
-    "ugui"
+    "ugui",
+    "dependency-injection"
   ],
   "samples": [
     {
@@ -29,6 +30,11 @@
       "displayName": "UGUI Sample",
       "description": "ButtonToggle(그룹, 이벤트, On/Off 그래픽), RoundImage 예시 씬과 프리팹. EventSystem은 Input System(InputSystemUIInputModule)을 사용",
       "path": "Samples~/UGUISample"
+    },
+    {
+      "displayName": "DI Sample",
+      "description": "SceneInstaller + SceneBinder(Sample / Api)로 DataSource를 Manager에 주입하는 예시 씬",
+      "path": "Samples~/DISample"
     }
   ]
 }

@@ -1,0 +1,16 @@
+{
+    "name": "UnityConv.DI",
+    "rootNamespace": "UnityConv.DI",
+    "references": [
+        "GUID:fc1b1931745445bbbea01fa9e4862314"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
