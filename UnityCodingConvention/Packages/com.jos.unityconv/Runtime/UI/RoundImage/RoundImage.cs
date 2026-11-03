@@ -31,6 +31,35 @@ namespace UnityConv.UI
 
         public enum BorderShape { RoundedRect, SpriteOutline }
 
+        /// <summary>Image: Sprite(UGUI Image 기능), RawImage: Texture + UV Rect(UGUI RawImage 기능)</summary>
+        public enum SourceType { Image, RawImage }
+
+        [SerializeField] private SourceType m_SourceType = SourceType.Image;
+        [SerializeField] private Texture m_Texture;
+        [SerializeField] private Rect m_UVRect = new Rect(0f, 0f, 1f, 1f);
+
+        public SourceType sourceType
+        {
+            get => m_SourceType;
+            set { if (SetPropertyUtility.SetStruct(ref m_SourceType, value)) { SetAllDirty(); Refresh(); } }
+        }
+
+        /// <summary>RawImage 모드에서 그릴 텍스처 (RenderTexture, WebCamTexture 등)</summary>
+        public Texture texture
+        {
+            get => m_Texture;
+            set { if (m_Texture == value) return; m_Texture = value; SetVerticesDirty(); SetMaterialDirty(); }
+        }
+
+        /// <summary>RawImage 모드에서 텍스처의 어느 영역을 그릴지 (0~1 UV 좌표)</summary>
+        public Rect uvRect
+        {
+            get => m_UVRect;
+            set { if (m_UVRect == value) return; m_UVRect = value; SetVerticesDirty(); }
+        }
+
+        private bool IsRawImage => m_SourceType == SourceType.RawImage;
+
         [SerializeField] private BorderShape m_BorderShape;
         [SerializeField, Range(0.001f, 1f)] private float m_OutlineAlphaThreshold = 0.01f;
         /// <summary>Graphic Color alpha controls content only; Border Color alpha controls the stroke.</summary>
@@ -454,7 +483,8 @@ namespace UnityConv.UI
             }
         }
 
-        private Sprite activeSprite { get { return m_OverrideSprite != null ? m_OverrideSprite : sprite; } }
+        // RawImage 모드에서는 Sprite를 쓰지 않음 (Sprite 기반 기능이 모두 꺼짐)
+        private Sprite activeSprite { get { return IsRawImage ? null : m_OverrideSprite != null ? m_OverrideSprite : sprite; } }
 
         /// How the Image is drawn.
         [SerializeField] private Type m_Type = Type.Simple;
@@ -740,6 +770,10 @@ namespace UnityConv.UI
         {
             get
             {
+                if (IsRawImage && m_Texture != null)
+                {
+                    return m_Texture;
+                }
                 if (activeSprite == null)
                 {
                     if (material != null && material.mainTexture != null)
@@ -918,6 +952,17 @@ namespace UnityConv.UI
         /// </remarks>
         public override void SetNativeSize()
         {
+            if (IsRawImage)
+            {
+                // RawImage.SetNativeSize와 같음: 텍스처 크기 x UV Rect 크기
+                if (m_Texture != null)
+                {
+                    rectTransform.anchorMax = rectTransform.anchorMin;
+                    rectTransform.sizeDelta = new Vector2(m_Texture.width * m_UVRect.width, m_Texture.height * m_UVRect.height);
+                    SetAllDirty();
+                }
+                return;
+            }
             if (activeSprite != null)
             {
                 float w = activeSprite.rect.width / pixelsPerUnit;
@@ -935,6 +980,12 @@ namespace UnityConv.UI
         {
             // Serialized Inspector changes also reach this path without the color setter.
             Refresh();
+            if (IsRawImage)
+            {
+                GenerateRawImage(toFill);
+                SeparateContentAlpha(toFill);
+                return;
+            }
             if (activeSprite == null)
             {
                 GenerateSimpleSprite(toFill, false);
@@ -1110,6 +1161,23 @@ namespace UnityConv.UI
             vh.AddVert(new Vector3(v.z, v.w), color32, new Vector2(uv.z, uv.w), new Vector2(1f, 1f), Vector3.back, Vector4.zero);
             vh.AddVert(new Vector3(v.z, v.y), color32, new Vector2(uv.z, uv.y), new Vector2(1f, 0f), Vector3.back, Vector4.zero);
 
+            vh.AddTriangle(0, 1, 2);
+            vh.AddTriangle(2, 3, 0);
+        }
+
+        /// <summary>
+        /// RawImage 모드의 사각형. UV0은 UV Rect, UV1은 모서리 계산용 0~1
+        /// </summary>
+        private void GenerateRawImage(VertexHelper vh)
+        {
+            Rect r = GetPixelAdjustedRect();
+            Rect uv = m_UVRect;
+            Color32 color32 = color;
+            vh.Clear();
+            vh.AddVert(new Vector3(r.xMin, r.yMin), color32, new Vector2(uv.xMin, uv.yMin), new Vector2(0f, 0f), Vector3.back, Vector4.zero);
+            vh.AddVert(new Vector3(r.xMin, r.yMax), color32, new Vector2(uv.xMin, uv.yMax), new Vector2(0f, 1f), Vector3.back, Vector4.zero);
+            vh.AddVert(new Vector3(r.xMax, r.yMax), color32, new Vector2(uv.xMax, uv.yMax), new Vector2(1f, 1f), Vector3.back, Vector4.zero);
+            vh.AddVert(new Vector3(r.xMax, r.yMin), color32, new Vector2(uv.xMax, uv.yMin), new Vector2(1f, 0f), Vector3.back, Vector4.zero);
             vh.AddTriangle(0, 1, 2);
             vh.AddTriangle(2, 3, 0);
         }

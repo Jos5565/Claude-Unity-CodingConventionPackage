@@ -27,6 +27,9 @@ namespace UnityConv.UI.EditorTools
         SerializedProperty m_Type;
         SerializedProperty m_FillCenter;
         SerializedProperty m_Sprite;
+        SerializedProperty m_SourceType;
+        SerializedProperty m_Texture;
+        SerializedProperty m_UVRect;
         SerializedProperty m_Round;
         SerializedProperty m_BorderWidth;
         SerializedProperty m_BorderColor;
@@ -45,6 +48,7 @@ namespace UnityConv.UI.EditorTools
         AnimBool m_ShowFilled;
         AnimBool m_ShowType;
         bool m_bIsDriven;
+        private static readonly string[] SourceTypeLabels = { "Image", "RawImage" };
         private class Styles
         {
             public static GUIContent text = EditorGUIUtility.TrTextContent("Fill Origin");
@@ -94,6 +98,9 @@ namespace UnityConv.UI.EditorTools
             m_ClockwiseContent = EditorGUIUtility.TrTextContent("Clockwise");
 
             m_Sprite = serializedObject.FindProperty("m_Sprite");
+            m_SourceType = serializedObject.FindProperty("m_SourceType");
+            m_Texture = serializedObject.FindProperty("m_Texture");
+            m_UVRect = serializedObject.FindProperty("m_UVRect");
             m_Type = serializedObject.FindProperty("m_Type");
             m_FillCenter = serializedObject.FindProperty("m_FillCenter");
             m_FillMethod = serializedObject.FindProperty("m_FillMethod");
@@ -147,6 +154,20 @@ namespace UnityConv.UI.EditorTools
             RectTransform rect = image.GetComponent<RectTransform>();
             m_bIsDriven = (rect.drivenByObject as Slider)?.fillRect == rect;
 
+            DrawSourceType();
+            if (m_SourceType.hasMultipleDifferentValues)
+            {
+                EditorGUILayout.HelpBox("선택한 오브젝트의 Source Type이 서로 다릅니다.", MessageType.Info);
+                serializedObject.ApplyModifiedProperties();
+                return;
+            }
+            if (IsRawImage)
+            {
+                RawImageGUI();
+                serializedObject.ApplyModifiedProperties();
+                return;
+            }
+
             SpriteGUI();
             AppearanceControlsGUI();
             RaycastControlsGUI();
@@ -176,8 +197,48 @@ namespace UnityConv.UI.EditorTools
             serializedObject.ApplyModifiedProperties();
         }
 
+        private bool IsRawImage => m_SourceType.enumValueIndex == (int)RoundImage.SourceType.RawImage;
+
+        /// <summary>
+        /// Image / RawImage 전환 (ButtonToggle의 Button / Toggle 전환과 같은 Toolbar)
+        /// </summary>
+        private void DrawSourceType()
+        {
+            EditorGUI.showMixedValue = m_SourceType.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            int sourceType = GUILayout.Toolbar(m_SourceType.hasMultipleDifferentValues ? -1 : m_SourceType.enumValueIndex, SourceTypeLabels);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck() && sourceType >= 0)
+            {
+                m_SourceType.enumValueIndex = sourceType;
+                SetShowNativeSize(true);
+            }
+            EditorGUILayout.Space();
+        }
+
+        /// <summary>
+        /// RawImage 모드: Texture, UV Rect와 공통 설정. Sprite 전용 항목(Image Type, Sprite Outline 등)은 숨김
+        /// </summary>
+        private void RawImageGUI()
+        {
+            EditorGUILayout.PropertyField(m_Texture, new GUIContent("Texture"));
+            AppearanceControlsGUI();
+            RaycastControlsGUI();
+            MaskableControlsGUI();
+            EditorGUILayout.PropertyField(m_UVRect, new GUIContent("UV Rect"));
+            RoundGUI();
+
+            SetShowNativeSize(false);
+            NativeSizeButtonGUI();
+        }
+
         void SetShowNativeSize(bool instant)
         {
+            if (IsRawImage)
+            {
+                base.SetShowNativeSize(m_Texture.objectReferenceValue != null, instant);
+                return;
+            }
             RoundImage.Type type = (RoundImage.Type)m_Type.enumValueIndex;
             bool showNativeSize = (type == RoundImage.Type.Simple || type == RoundImage.Type.Filled) && m_Sprite.objectReferenceValue != null;
             base.SetShowNativeSize(showNativeSize, instant);
@@ -212,8 +273,10 @@ namespace UnityConv.UI.EditorTools
         }
         protected void RoundGUI()
         {
-            EditorGUILayout.PropertyField(m_BorderShape, new GUIContent("Border Shape"));
-            bool spriteOutline = !m_BorderShape.hasMultipleDifferentValues &&
+            // Sprite Outline은 Sprite 모양을 따라가므로 RawImage 모드에서는 쓰지 않음
+            if (!IsRawImage)
+                EditorGUILayout.PropertyField(m_BorderShape, new GUIContent("Border Shape"));
+            bool spriteOutline = !IsRawImage && !m_BorderShape.hasMultipleDifferentValues &&
                 m_BorderShape.enumValueIndex == (int)RoundImage.BorderShape.SpriteOutline;
             if (spriteOutline)
             {
@@ -365,6 +428,13 @@ namespace UnityConv.UI.EditorTools
         public override string GetInfoString()
         {
             RoundImage image = target as RoundImage;
+            if (image.sourceType == RoundImage.SourceType.RawImage)
+            {
+                Texture texture = image.texture;
+                int width = texture != null ? Mathf.RoundToInt(texture.width * image.uvRect.width) : 0;
+                int height = texture != null ? Mathf.RoundToInt(texture.height * image.uvRect.height) : 0;
+                return string.Format("RawImage Size: {0}x{1}", width, height);
+            }
             Sprite sprite = image.sprite;
 
             int x = (sprite != null) ? Mathf.RoundToInt(sprite.rect.width) : 0;

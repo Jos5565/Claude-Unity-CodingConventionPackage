@@ -169,7 +169,7 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
   - On/Off 모습은 `Off/On Color`, `Off/On Sprite`로 정한다. On Sprite가 비어 있으면 색만 바뀐다. 바꾸는 대상은 Target Graphic이다.
   - 값을 이벤트 없이 바꿀 때는 `SetIsOnWithoutNotify`. 그룹에서 켜진 토글 조회는 `group.ActiveButtonToggles()`, `group.AnyButtonTogglesOn()`.
   - XXXUI는 `OnOpened`에서 `onClick` / `onValueChanged`에 리스너를 등록하고 `OnClosed`에서 해제한다.
-- 둥근 모서리 이미지는 `RoundImage`를 쓴다. 새로 만들 때는 메뉴 GameObject > UI (Canvas) > Button Toggle / Round Image.
+- 둥근 모서리 이미지는 `RoundImage`를 쓴다 (Sprite는 Image 모드, Texture(RenderTexture 등)는 `sourceType = RawImage` + `texture`). 새로 만들 때는 메뉴 GameObject > UI (Canvas) > Button Toggle / Round Image.
 
 ## 3. 코드 컨벤션 (공통)
 - 필드는 `[SerializeField] private` + 타입 접두사(`text_x`, `button_x`, `ui_x`, `manager_x`), `[Header]`로 묶는다.
