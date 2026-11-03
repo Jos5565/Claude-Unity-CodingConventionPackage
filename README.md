@@ -6,7 +6,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 | 구성 | 내용 |
 |---|---|
 | **Base 코드** | `ManagerBase`, `UIBase<TData>`, `PopupService` (`UnityConv.Bases`) |
-| **Network 코드** | `APIService`, `APIStore`, `APIResponse<T>`, `NetworkManager` (`UnityConv.Network`) |
+| **Network 코드** | `APIService`, `APIStore`, `APIResponse<T>` (`UnityConv.Network`) |
 | **UI 컴포넌트** | `ButtonToggle`(버튼 + 토글), `RoundImage`(둥근 모서리 이미지) (`UnityConv.UI`) |
 | **Claude Code 스킬** | `/code-conv` 명령어. 이 구조로 코드를 새로 만들거나 정리할 때 사용 |
 
@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.4.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.5.0
 ```
 
 ### 준비
@@ -42,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.4.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.5.0",
     ...
   }
 }
@@ -99,18 +99,18 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.4.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.5.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 Package Manager의 **Update** 버튼은 git 패키지에서 같은 태그를 다시 받기만 해서 새 버전으로 올라가지 않습니다. 대신 패키지의 업데이트 메뉴를 씁니다 (v2.3.0부터).
 
 1. **Tools > UnityConv > Check for Updates**를 누릅니다. Unity를 열 때도 하루에 한 번 자동으로 확인합니다.
-2. 새 버전이 있으면 `v2.4.0 → v2.5.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
+2. 새 버전이 있으면 `v2.5.0 → v2.6.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
    - **이 버전 건너뛰기**를 고르면 그 버전은 자동 확인에서 다시 묻지 않습니다. 메뉴로는 언제든 확인할 수 있습니다.
 3. 스킬도 새 버전으로 다시 설치됩니다.
 
 새 버전은 저장소의 `vX.Y.Z` 태그를 `git ls-remote`로 읽어서 찾습니다. 패키지를 받을 때와 같은 git 로그인 정보를 쓰므로 Private 저장소에서도 동작합니다.
 
-v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.4.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
+v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.5.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
 
@@ -185,7 +185,12 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
   - 씬 오브젝트가 필요 없는 static 전역 팝업 스택입니다. `Push`, `Close`, `Back`, `CloseAll`, `Get<T>()`를 제공합니다.
 
 ### Network
-- 씬에 `NetworkManager`를 두고 `APIStore` 에셋(서버 주소, API 이름과 경로 목록)을 연결합니다.
+- `APIStore` 에셋(서버 주소, API 이름과 경로 목록)을 `Resources` 폴더에 **`APIConfig`** 이름으로 둡니다 (예: `Assets/Resources/APIConfig.asset`). `APIService`가 처음 쓸 때 읽으므로 씬에 오브젝트가 필요 없습니다.
+  - 서버 주소는 **Servers** 목록에 여러 개(예: `Dev`, `Release`) 등록하고 **Selected Server**로 기본 서버를 고릅니다. API 경로 목록은 모든 서버가 같이 씁니다.
+  - 실행 중에는 `APIService.Store.SelectServer("Release")`로 바꿀 수 있습니다 (에셋 값은 바뀌지 않음).
+  - v2.4.0 이하의 `ServerUrl` 하나짜리 에셋은 열면 `Default` 서버로 자동으로 옮겨집니다.
+  - 다른 에셋을 쓰려면 `APIService.Store`에 직접 지정합니다.
+  - v2.5.0부터 `NetworkManager`는 쓰지 않습니다. 기존 씬에 있으면 APIStore를 `Resources/APIConfig`로 옮기고 오브젝트를 지우세요 (그대로 두면 경고만 나오고 동작은 합니다. 다음 버전에서 삭제).
 - 그다음 `APIService.GetAsync<T>("apiName", keys, token)`처럼 API 이름으로 호출합니다.
 - 응답 형식은 `{ success, code, message, data }`(`APIResponse<T>`)를 기준으로 합니다.
 - 서버가 보낸 쿠키(Set-Cookie)는 보관했다가 이후 요청에 붙입니다.
@@ -253,8 +258,7 @@ ButtonToggle selected = group_tab.GetFirstActiveButtonToggle();
 
 | 샘플 | 파일 | 내용 |
 |---|---|---|
-| Network Sample | `Network Sample.unity`, `NetworkManager.prefab` | NetworkManager 배치 예시 |
-| | `APIStore.asset` | 샘플 서버 주소와 API 목록 |
+| Network Sample | `APIConfig.asset` | 샘플 서버 목록(Dev / Release)과 API 목록. 쓰려면 `Resources` 폴더로 옮깁니다 |
 | | `FileExtensionDecoder.cs` | 파일 확장자 판별 예시. 임포트하면 `APIService.ExtensionDetector`에 자동 등록됩니다 |
 | UGUI Sample | `Sample Scene.unity` | 같은 그룹의 ButtonToggle 4개. 이벤트가 `ButtonToggleSampleLog`에 연결돼 있어 콘솔로 확인할 수 있습니다 |
 | | `Round Image Demo.unity`, `Round Image.prefab`, `Button Toggle.prefab` | RoundImage, ButtonToggle 예시 |

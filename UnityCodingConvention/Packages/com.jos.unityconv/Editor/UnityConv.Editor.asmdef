@@ -1,7 +1,9 @@
 {
     "name": "UnityConv.Editor",
     "rootNamespace": "UnityConv.Editor",
-    "references": [],
+    "references": [
+        "GUID:fc1b1931745445bbbea01fa9e4862314"
+    ],
     "includePlatforms": [
         "Editor"
     ],

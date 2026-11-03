@@ -9,13 +9,34 @@ using UnityEngine.Networking;
 
 namespace UnityConv.Network
 {
-    public class APIService
+    public static class APIService
     {
-        public static APIStore store;
+        private static APIStore _store;
         private const int MaxAttempts = 3;
         private const int RetryDelayMs = 700;
         private const int DefaultTimeoutSec = 10;
         private const int DownloadTimeoutSec = 180;
+
+        /// <summary>
+        /// API 주소 목록, 지정하지 않으면 처음 쓸 때 Resources/APIConfig(APIStore 에셋)를 읽음
+        /// </summary>
+        public static APIStore Store
+        {
+            get
+            {
+                if (_store == null)
+                    _store = Resources.Load<APIStore>(APIStore.ResourceName);
+                return _store;
+            }
+            set => _store = value;
+        }
+
+        [Obsolete("APIService.Store를 쓰세요.")]
+        public static APIStore store
+        {
+            get => Store;
+            set => Store = value;
+        }
 
         /// <summary>파일 응답의 확장자 판별 (없으면 extension은 null), 프로젝트에서 등록합니다.</summary>
         public static Func<byte[], string> ExtensionDetector { get; set; }
@@ -413,23 +434,25 @@ namespace UnityConv.Network
         /// <summary>등록된 API 이름으로 URL 생성, APIStore가 없거나 이름이 없으면 null</summary>
         private static string BuildUrl(string urlName, object[] keys)
         {
-            if (store == null)
+            APIStore apiStore = Store;
+            if (apiStore == null)
             {
-                Debug.LogError($"[APIService] APIStore가 설정되지 않았습니다. NetworkManager를 씬에 두거나 APIService.store를 지정하세요. ({urlName})");
+                Debug.LogError($"[APIService] APIStore가 없습니다. Resources 폴더에 APIConfig 이름으로 APIStore 에셋을 두세요. ({urlName})");
                 return null;
             }
-            return keys != null ? store.GetUrl(urlName, keys) : store.GetUrl(urlName);
+            return keys != null ? apiStore.GetUrl(urlName, keys) : apiStore.GetUrl(urlName);
         }
 
         /// <summary>경로나 전체 URL로 다운로드 URL 생성, APIStore가 없으면 null</summary>
         private static string BuildDownloadUrl(string url)
         {
-            if (store == null)
+            APIStore apiStore = Store;
+            if (apiStore == null)
             {
-                Debug.LogError($"[APIService] APIStore가 설정되지 않았습니다. NetworkManager를 씬에 두거나 APIService.store를 지정하세요. ({url})");
+                Debug.LogError($"[APIService] APIStore가 없습니다. Resources 폴더에 APIConfig 이름으로 APIStore 에셋을 두세요. ({url})");
                 return null;
             }
-            return store.DownloadUrl(url);
+            return apiStore.DownloadUrl(url);
         }
 
         private static APIResult CanceledResult() => new APIResult { ok = false, canceled = true, error = "요청 취소" };

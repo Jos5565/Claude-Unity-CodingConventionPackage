@@ -23,10 +23,10 @@ $ARGUMENTS
 1. CLAUDE.md에서 `code-conv 프로젝트 설정`을 찾는다. 있으면 그 값을 따르고, 이 문서와 다르면 프로젝트 설정이 우선한다.
 2. 없으면 작업 전에 프로젝트를 조사해 아래 항목으로 초안을 만들고, 사용자 확인 후 CLAUDE.md에 추가한다.
    - 작업 씬, Manager 루트 오브젝트
-   - 폴더: Manager / UI / Network(DataSource) / Data / Defs(enum) / 샘플 JSON / DI 바인더
+   - 폴더: Manager / UI / Service / Network(DataSource) / Data / Defs(enum) / 샘플 JSON / DI 바인더
    - DI: 씬마다 기본 바인더 (Sample / Api 중 지금 쓰는 것)
    - 팝업 여는 방법 (기본은 패키지의 `PopupService`, 프로젝트 전용 팝업 관리자가 있으면 그 클래스)
-   - 서버 통신 클래스와 응답 래퍼 (기본은 패키지의 `APIService`, `APIResponse`), 취소 토큰 지원 여부
+   - 서버 통신 클래스와 응답 래퍼 (기본은 패키지의 `APIService`, `APIResponse`), 취소 토큰 지원 여부. `APIService`면 `Resources/APIConfig` 에셋 위치
    - 공용 유틸, 입력, 태그 규칙 (값 없음 표시, 입력 시스템, 상태 Tag 등)
    - 수정 금지 폴더 (서드파티, 다른 팀 소유)
    - 기준 예시 (이미 이 구조로 만든 화면)
@@ -34,7 +34,7 @@ $ARGUMENTS
 3. **Base 코드**: `com.jos.unityconv` 패키지가 제공한다. 프로젝트에 복사하거나 새로 만들지 않는다.
    - `Packages/manifest.json`에 `com.jos.unityconv`가 없으면 작업 전에 사용자에게 설치를 안내한다. 예전 이름 `com.jos.code-conv`가 있으면 교체를 안내한다.
    - Bases: `using UnityConv.Bases;` (`ManagerBase`, `UIBase`, `UIBase<TData>`, `PopupService`)
-   - Network: `using UnityConv.Network;` (`APIService`, `APIStore`, `APIResponse<T>`, `NetworkManager`)
+   - Network: `using UnityConv.Network;` (`APIService`, `APIStore`, `APIResponse<T>`). `APIService`는 static이고 처음 쓸 때 `Resources/APIConfig`(APIStore 에셋)를 읽는다. 서버(Dev / Release 등)는 APIStore의 Servers 목록과 Selected Server로 고르고, 코드에서 서버 주소를 분기하지 않는다. 씬에 오브젝트를 두지 않는다 (예전 `NetworkManager`가 씬에 있으면 APIStore를 `Resources/APIConfig`로 옮기고 지우도록 안내).
    - DI: `using UnityConv.DI;` (`[Inject]`, `SceneInstaller`, `SceneBinder`)
    - UI: `using UnityConv.UI;` (`ButtonToggle`, `RoundImage`, ToggleGroup 확장)
    - 팝업은 `UIBase.Show()` 기본값으로 `PopupService.Push(this)`가 연다. 닫기는 `PopupService.Close(this)`, 뒤로 가기는 `PopupService.Back()`. `PopupService`는 static 전역이라 씬에 오브젝트를 두지 않는다.
@@ -53,7 +53,7 @@ IXxxDataSource                화면 Manager (초기화, 화면 공유 기능)
  ├ SampleSource ─[Inject]──▶  └ 데이터 Manager ──Initialize(this, data)──▶ XXXUI (SetData로 그림)
  └ ApiSource   (SceneBinder)    ◀──────── 요청 (조건 변경, 다른 팝업 열기, 닫힘 알림) ─┘
           ▲
-XXXService (static, DI 등록 안 함, 여러 화면 Manager가 공유)
+XXXService (static, DI 등록 안 함, 2개 이상 Manager가 참조)
 ```
 
 의존 방향: **UI → Manager → Service / DataSource**. 역방향 금지.
@@ -84,11 +84,16 @@ XXXService (static, DI 등록 안 함, 여러 화면 Manager가 공유)
 
 ### XXXManager
 - `ManagerBase` 상속. **MonoSingleton 사용 금지.**
+- **기존 MonoSingleton Manager(`XxxManager.Instance`)는 DI로 정리한다.**
+  - 같은 씬에만 있으면: 그 Manager를 `SceneInstaller`의 `m_SceneObjects`에 등록하고, 쓰는 Manager는 `Instance` 대신 `[Inject] private XxxManager _xxx;`로 받는다. `Instance`를 쓰는 곳이 없어지면 싱글톤 상속, `Instance`, `DontDestroyOnLoad`를 지운다.
+  - 이번 범위 밖 코드가 `Instance`를 쓰면 싱글톤은 남기고 범위 안만 `[Inject]`로 바꾼다. 남은 사용처는 결과 보고에 적는다.
+  - UI가 `Instance`를 쓰면 자기 Manager를 거치게 바꾼다 (UI는 `[Inject]` 안 씀).
+  - 여러 씬에서 쓰는 싱글톤(`DontDestroyOnLoad`)은 씬 단위 DI로 옮길 수 없다. 앱 전체 상태면 static Service로 옮길지 사용자에게 확인하고, 아니면 그대로 두고 보고한다.
 - **화면 Manager**: 하위 데이터 Manager를 `[SerializeField]`로 들고 `Awake`에서 순서대로 `Initialize(this)` (Awake 초기화는 화면 Manager만). 화면 공통 상태, 주기 갱신, 하위 Manager 간 화면 이동. DataSource는 만들지 않는다.
 - **데이터 Manager**: 화면 Manager의 자식 GameObject 컴포넌트, 이름도 `XxxManager` (Controller로 부르지 않음). 해당 데이터의 조회와 UI 전달. 연결 UI는 `[SerializeField]`로 들고 `BindViews`로 자신을 알린다 (Inspector에서 확인). DataSource는 `[Inject] private IXxxDataSource _source;`로 받는다.
 - 데이터 Manager끼리는 서로 참조하지 않는다. 다른 Manager 소관 UI는 **화면 Manager를 거쳐** 연다 (화면 이동은 순환하기 쉬움).
 - 화면 하나에 데이터 Manager가 많으면 공통 부모(`Screen`, 공통 갱신 메서드)를 둔다.
-- **DI**: `[Inject]`는 Manager만 쓴다 (UI에 쓰면 SceneInstaller가 주입하지 않고 에러). 주입 대상은 DataSource와 설정 에셋. Manager끼리 참조는 `[SerializeField]`, Service는 static이라 주입하지 않는다.
+- **DI**: `[Inject]`는 Manager만 쓴다 (UI에 쓰면 SceneInstaller가 주입하지 않고 에러). 주입 대상은 DataSource, 설정 에셋, 기존 싱글톤 Manager(위). Manager끼리 참조는 `[SerializeField]`, Service는 static이라 주입하지 않는다.
 - 데이터가 다 와야 UI를 Initialize (여러 개면 `Task.WhenAll`).
 - Manager가 Initialize하지 않고 열린 UI(공용 상세 버튼 등)는 UIBase가 `HandleUIOpened`로 알려주고, 필요한 Manager만 오버라이드해 조회.
 - Manager가 Initialize하지 않는 그 밖의 진입점(3D 클릭 등)은 화면 Manager를 `[SerializeField]`로 참조.
@@ -146,9 +151,10 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 ```
 
 ### XXXService
-- 여러 **화면** Manager가 같은 기능을 필요로 할 때만 만든다 (기준 예: 서버 통신 클래스).
-- 판단이 안 되면 일단 Manager에 두고, 두 번째 화면이 같은 기능을 필요로 할 때 분리. 같은 화면 안 Manager들끼리만 공유하면 화면 Manager에 둔다.
-- 기본은 static 클래스. 코루틴, Update, 인스펙터 설정이 필요할 때만 MonoBehaviour.
+- **2개 이상의 Manager가 참조해야 하는 기능이면 Service로 정의한다.** 앱 전체 기능, 상태(서버 통신, 팝업, 현재 라인, 로그인 사용자 등)도 Service.
+- 한 Manager만 쓰면 그 Manager에 두고, 두 번째 Manager가 필요로 할 때 분리한다.
+- 항상 `static class`. 씬 오브젝트, MonoBehaviour, DI 등록 없음. 비동기는 async/await, 설정은 Resources 에셋을 처음 쓸 때 읽는다 (예: `APIService` ← `Resources/APIConfig`).
+- 프로젝트 설정의 Service 폴더에 둔다.
 - Manager, UI를 모른다. 값 반환이나 이벤트 발행만. 분리해도 Manager의 public 메서드는 유지해 UI 영향 없음.
 
 ### DataSource (Network 계층)
@@ -177,14 +183,14 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 ## 4. 절차
 
 ### 기존 코드 정리
-1. **조사**: 임시 데이터(`CreateSample*`, `useSample`, 하드코딩), 직접 조회, 조건 비교 코드를 찾는다. UI를 위젯 / 팝업, 조건 변경이 있는 UI로 분류한다. 다른 Manager에 비슷한 코드가 있는지, 다른 씬이 참조하는 타입인지(`.meta` guid로 씬, 프리팹 검색 + 타입명 grep) 확인한다.
+1. **조사**: 임시 데이터(`CreateSample*`, `useSample`, 하드코딩), 직접 조회, 조건 비교 코드, 싱글톤 `.Instance` 사용을 찾는다. UI를 위젯 / 팝업, 조건 변경이 있는 UI로 분류한다. 다른 Manager에 비슷한 코드가 있는지, 다른 씬이 참조하는 타입인지(`.meta` guid로 씬, 프리팹 검색 + 타입명 grep) 확인한다.
 2. **Data**: 이름 규칙대로 Data 폴더로 옮기고, 공통 계산을 `GetXxx()`로.
 3. **DataSource**: 인터페이스, Sample, Api, 샘플 JSON, API 경로 등록. 기존 `new XxxSampleSource()`, `useSample` 분기는 지우고 바인더로 옮긴다.
    - 바인더가 없으면 **자동으로 만든다**: Unity MCP로 프로젝트 설정의 바인더 폴더에 `<씬> Sample Binder.asset`, `<씬> Api Binder.asset`을 만들고 `m_Classes`에 구현 MonoScript를 넣는다 (SerializedObject로 설정 후 저장). MCP가 없으면 메뉴 Create > UnityConv > DI > Scene Binder로 만들도록 안내한다.
 4. **Base**: 패키지 클래스를 쓴다 (0절). `using UnityConv.Bases;` / `using UnityConv.Network;` / `using UnityConv.DI;` 추가.
 5. **UI**: UIBase 상속, Initialize 규칙, 요청은 Manager로, 조회, 조건 비교 코드 제거.
-6. **Manager**: 화면 Manager + 데이터 Manager, `[Inject]`로 DataSource, Request로 조회와 Initialize.
-7. **씬 연결**: Manager GameObject 추가, 참조 연결. 씬에 `SceneInstaller`가 없으면 **자동으로 만든다** (오브젝트 이름 `SceneInstaller`, 루트, 기본 바인더 연결). 이미 있으면 기존 바인더에 등록만 추가한다.
+6. **Manager**: 화면 Manager + 데이터 Manager, `[Inject]`로 DataSource, Request로 조회와 Initialize. `.Instance`는 2절 규칙대로 `[Inject]`로 바꾼다.
+7. **씬 연결**: Manager GameObject 추가, 참조 연결. 씬에 `SceneInstaller`가 없으면 **자동으로 만든다** (오브젝트 이름 `SceneInstaller`, 루트, 기본 바인더 연결). 이미 있으면 기존 바인더에 등록만 추가한다. 주입할 기존 싱글톤 Manager는 `m_SceneObjects`에 넣는다.
 8. **검증**: 컴파일 에러 0, `[DI]` 경고 0, 플레이 모드에서 모든 UI 열기, 조건 변경, 빠른 연타, 응답 전 닫기, 화면 전환. 플레이 후 씬 dirty 아님, `git status`로 범위 밖 변경 없음.
    - 확인은 콘솔 로그와 텍스트 상태(오브젝트 활성 여부, 컴포넌트 값, `IsShown`)로 한다. **스크린샷은 사용자가 요청할 때만** 찍는다 (이미지 한 장이 코드 파일 수십 개만큼 토큰을 씀).
    - 씬, 프리팹 YAML은 통째로 읽지 않고 guid, 오브젝트 이름으로 grep해 필요한 블록만 본다.
@@ -209,4 +215,4 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 
 ## 6. 보류 (구현하지 말고 필요 시 사용자와 논의)
 - 로딩, 에러 관제 (서버 통신 실패 정보 → 전역 상태 Service)
-- 다른 씬이 쓰는 enum, 공용 Manager의 Service 전환
+- 다른 씬이 쓰는 enum, 여러 씬에서 쓰는 싱글톤의 Service 전환 (사용자가 원할 때만)

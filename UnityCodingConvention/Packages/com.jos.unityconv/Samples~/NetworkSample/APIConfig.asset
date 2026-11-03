@@ -10,9 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a389a08fbcd47e285adce6dd8f92024, type: 3}
-  m_Name: APIStore
+  m_Name: APIConfig
   m_EditorClassIdentifier: UnityConv::UnityConv.Network.APIStore
-  ServerUrl: http://localhost
+  servers:
+  - Name: Dev
+    Url: http://localhost
+  - Name: Release
+    Url: https://api.example.com
+  selectedServer: 0
   apiUrls:
   - Name: login
     Url: /api/auth/login.json
