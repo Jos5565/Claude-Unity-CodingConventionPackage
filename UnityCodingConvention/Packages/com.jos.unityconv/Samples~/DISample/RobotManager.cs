@@ -10,28 +10,28 @@ namespace UnityConv.Samples.DI
     public class RobotManager : ManagerBase
     {
         [Header("UI")]
-        [SerializeField] private RobotInfoUI ui_robotInfo;
+        [SerializeField] private RobotInfoUI robotInfoUI;
 
         [Header("조회 조건")]
-        [SerializeField] private string m_RobotName = "AGV-01";
+        [SerializeField] private string defaultRobotName = "AGV-01";
 
         // Sample Binder면 RobotSampleSource, Api Binder면 RobotApiSource
-        [Inject] private IRobotDataSource _source;
+        [Inject] private IRobotDataSource dataSource;
 
         private void Awake()
         {
-            BindViews(ui_robotInfo);
+            BindViews(robotInfoUI);
         }
 
         private void Start()
         {
-            OpenRobotInfo(m_RobotName);
+            OpenRobotInfo(defaultRobotName);
         }
 
         public void OpenRobotInfo(string robotName)
         {
-            if (_source == null || string.IsNullOrEmpty(robotName)) return;
-            Request(ui_robotInfo, token => _source.GetRobotAsync(robotName, token), robot => ui_robotInfo.Initialize(this, robot));
+            if (dataSource == null || string.IsNullOrEmpty(robotName)) return;
+            Request(robotInfoUI, token => dataSource.GetRobotAsync(robotName, token), robot => robotInfoUI.Initialize(this, robot));
         }
     }
 }

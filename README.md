@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.6.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.7.0
 ```
 
 ### 준비
@@ -42,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.6.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.7.0",
     ...
   }
 }
@@ -99,18 +99,18 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.6.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.7.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 Package Manager의 **Update** 버튼은 git 패키지에서 같은 태그를 다시 받기만 해서 새 버전으로 올라가지 않습니다. 대신 패키지의 업데이트 메뉴를 씁니다 (v2.3.0부터).
 
 1. **Tools > UnityConv > Check for Updates**를 누릅니다. Unity를 열 때도 하루에 한 번 자동으로 확인합니다.
-2. 새 버전이 있으면 `v2.6.0 → v2.7.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
+2. 새 버전이 있으면 `v2.7.0 → v2.8.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
    - **이 버전 건너뛰기**를 고르면 그 버전은 자동 확인에서 다시 묻지 않습니다. 메뉴로는 언제든 확인할 수 있습니다.
 3. 스킬도 새 버전으로 다시 설치됩니다.
 
 새 버전은 저장소의 `vX.Y.Z` 태그를 `git ls-remote`로 읽어서 찾습니다. 패키지를 받을 때와 같은 git 로그인 정보를 쓰므로 Private 저장소에서도 동작합니다.
 
-v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.6.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
+v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.7.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
 
@@ -149,18 +149,18 @@ using UnityConv.Bases;
 // 데이터 Manager: 조회 → (취소, 빈 결과면 버림) → UI 초기화
 public class RobotManager : ManagerBase
 {
-    [SerializeField] private RobotDetailPopupUI ui_robotDetail;
-    private IRobotDataSource _source;
+    [SerializeField] private RobotDetailPopupUI robotDetailPopupUI;
+    private IRobotDataSource dataSource;
 
     public void Initialize(ScreenManager screen, IRobotDataSource source)
     {
-        _source = source;
-        BindViews(ui_robotDetail);
+        dataSource = source;
+        BindViews(robotDetailPopupUI);
     }
 
     public void OpenRobotDetail(string robotName)
     {
-        Request(ui_robotDetail, token => _source.GetRobotDetailAsync(robotName, token), detail => ui_robotDetail.Initialize(this, detail));
+        Request(robotDetailPopupUI, token => dataSource.GetRobotDetailAsync(robotName, token), detail => robotDetailPopupUI.Initialize(this, detail));
     }
 }
 
@@ -206,18 +206,18 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
    - 샘플용(`Sample Binder`)과 서버용(`Api Binder`)을 따로 만들면, 바인더만 바꿔 끼워 샘플 데이터와 서버를 오갈 수 있습니다.
 2. 씬에 빈 오브젝트를 만들고 **Scene Installer** 컴포넌트를 붙인 뒤 바인더를 연결합니다. 씬마다 하나만 둡니다.
    - **Scene Objects**: 그대로 등록할 이 씬의 컴포넌트.
-3. Manager에서 `[Inject] private IRobotDataSource _source;`처럼 받습니다. 인터페이스로 받으면 바인더에 등록한 구현이 들어옵니다.
+3. Manager에서 `[Inject] private IRobotDataSource dataSource;`처럼 받습니다. 인터페이스로 받으면 바인더에 등록한 구현이 들어옵니다.
 
 ```csharp
 public class RobotManager : ManagerBase
 {
-    [SerializeField] private RobotInfoUI ui_robotInfo;
-    [Inject] private IRobotDataSource _source;   // Sample Binder면 RobotSampleSource
+    [SerializeField] private RobotInfoUI robotInfoUI;
+    [Inject] private IRobotDataSource dataSource;   // Sample Binder면 RobotSampleSource
 
     public void OpenRobotInfo(string robotName)
     {
-        if (_source == null || string.IsNullOrEmpty(robotName)) return;
-        Request(ui_robotInfo, token => _source.GetRobotAsync(robotName, token), robot => ui_robotInfo.Initialize(this, robot));
+        if (dataSource == null || string.IsNullOrEmpty(robotName)) return;
+        Request(robotInfoUI, token => dataSource.GetRobotAsync(robotName, token), robot => robotInfoUI.Initialize(this, robot));
     }
 }
 ```
@@ -241,9 +241,9 @@ public class RobotManager : ManagerBase
 ```csharp
 using UnityConv.UI;
 
-toggle_tab.onValueChanged.AddListener(isOn => { if (isOn && Manager != null) Manager.RequestTab(TabType.Week); });
-toggle_tab.SetIsOnWithoutNotify(true);              // 이벤트 없이 값만 변경 (그래픽은 갱신)
-ButtonToggle selected = group_tab.GetFirstActiveButtonToggle();
+weekTabButtonToggle.onValueChanged.AddListener(isOn => { if (isOn && Manager != null) Manager.RequestTab(TabType.Week); });
+weekTabButtonToggle.SetIsOnWithoutNotify(true);              // 이벤트 없이 값만 변경 (그래픽은 갱신)
+ButtonToggle selected = tabToggleGroup.GetFirstActiveButtonToggle();
 ```
 
 - On/Off 모습은 `Off/On Color`와 `Off/On Sprite`로 정합니다. `On Sprite`가 비어 있으면 색만 바뀝니다.

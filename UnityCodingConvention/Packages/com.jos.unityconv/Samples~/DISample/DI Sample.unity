@@ -275,8 +275,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 918da61720a1c4cea8bffacbd9f251f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityConv.Samples.DI.RobotInfoUI
-  text_info: {fileID: 1801614568}
-  m_Format: "{0}  /  {1}  /  \uBC30\uD130\uB9AC {2}%"
+  infoText: {fileID: 1801614568}
+  infoFormat: "{0}  /  {1}  /  \uBC30\uD130\uB9AC {2}%"
 --- !u!224 &251869856
 RectTransform:
   m_ObjectHideFlags: 0
@@ -521,8 +521,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98731393a6e6b41d1bf2a5b5ea46abbd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityConv.Samples.DI.RobotManager
-  ui_robotInfo: {fileID: 251869855}
-  m_RobotName: AGV-01
+  robotInfoUI: {fileID: 251869855}
+  defaultRobotName: AGV-01
 --- !u!4 &1285640499
 Transform:
   m_ObjectHideFlags: 0
@@ -550,7 +550,7 @@ GameObject:
   - component: {fileID: 1801614569}
   - component: {fileID: 1801614568}
   m_Layer: 0
-  m_Name: Text_Info
+  m_Name: InfoText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

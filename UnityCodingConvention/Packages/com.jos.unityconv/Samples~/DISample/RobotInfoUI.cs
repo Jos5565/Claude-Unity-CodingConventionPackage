@@ -10,17 +10,17 @@ namespace UnityConv.Samples.DI
     public class RobotInfoUI : UIBase<RobotData>
     {
         [Header("UI")]
-        [SerializeField] private Text text_info;
+        [SerializeField] private Text infoText;
 
         [Header("문구")]
-        [SerializeField] private string m_Format = "{0}  /  {1}  /  배터리 {2}%";
+        [SerializeField] private string infoFormat = "{0}  /  {1}  /  배터리 {2}%";
 
         protected override bool IsPopup => false;
 
         public override void SetData(RobotData robot)
         {
-            string info = string.Format(m_Format, robot.robot_name, robot.status, robot.GetBatteryPercent());
-            if (text_info != null) text_info.text = info;
+            string info = string.Format(infoFormat, robot.robot_name, robot.status, robot.GetBatteryPercent());
+            if (infoText != null) infoText.text = info;
             Debug.Log($"[DI Sample] {info}");
         }
     }

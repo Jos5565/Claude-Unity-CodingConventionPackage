@@ -85,12 +85,12 @@ XXXService (static, DI 등록 안 함, 2개 이상 Manager가 참조)
 ### XXXManager
 - `ManagerBase` 상속. **MonoSingleton 사용 금지.**
 - **기존 MonoSingleton Manager(`XxxManager.Instance`)는 DI로 정리한다.**
-  - 같은 씬에만 있으면: 그 Manager를 `SceneInstaller`의 `m_SceneObjects`에 등록하고, 쓰는 Manager는 `Instance` 대신 `[Inject] private XxxManager _xxx;`로 받는다. `Instance`를 쓰는 곳이 없어지면 싱글톤 상속, `Instance`, `DontDestroyOnLoad`를 지운다.
+  - 같은 씬에만 있으면: 그 Manager를 `SceneInstaller`의 `m_SceneObjects`에 등록하고, 쓰는 Manager는 `Instance` 대신 `[Inject] private XxxManager xxxManager;`로 받는다. `Instance`를 쓰는 곳이 없어지면 싱글톤 상속, `Instance`, `DontDestroyOnLoad`를 지운다.
   - 이번 범위 밖 코드가 `Instance`를 쓰면 싱글톤은 남기고 범위 안만 `[Inject]`로 바꾼다. 남은 사용처는 결과 보고에 적는다.
   - UI가 `Instance`를 쓰면 자기 Manager를 거치게 바꾼다 (UI는 `[Inject]` 안 씀).
   - 여러 씬에서 쓰는 싱글톤(`DontDestroyOnLoad`)은 씬 단위 DI로 옮길 수 없다. 앱 전체 상태면 static Service로 옮길지 사용자에게 확인하고, 아니면 그대로 두고 보고한다.
 - **화면 Manager**: 하위 데이터 Manager를 `[SerializeField]`로 들고 `Awake`에서 순서대로 `Initialize(this)` (Awake 초기화는 화면 Manager만). 화면 공통 상태, 주기 갱신, 하위 Manager 간 화면 이동. DataSource는 만들지 않는다.
-- **데이터 Manager**: 화면 Manager의 자식 GameObject 컴포넌트, 이름도 `XxxManager` (Controller로 부르지 않음). 해당 데이터의 조회와 UI 전달. 연결 UI는 `[SerializeField]`로 들고 `BindViews`로 자신을 알린다 (Inspector에서 확인). DataSource는 `[Inject] private IXxxDataSource _source;`로 받는다.
+- **데이터 Manager**: 화면 Manager의 자식 GameObject 컴포넌트, 이름도 `XxxManager` (Controller로 부르지 않음). 해당 데이터의 조회와 UI 전달. 연결 UI는 `[SerializeField]`로 들고 `BindViews`로 자신을 알린다 (Inspector에서 확인). DataSource는 `[Inject] private IXxxDataSource dataSource;`로 받는다.
 - 데이터 Manager끼리는 서로 참조하지 않는다. 다른 Manager 소관 UI는 **화면 Manager를 거쳐** 연다 (화면 이동은 순환하기 쉬움).
 - 화면 하나에 데이터 Manager가 많으면 공통 부모(`Screen`, 공통 갱신 메서드)를 둔다.
 - **DI**: `[Inject]`는 Manager만 쓴다 (UI에 쓰면 SceneInstaller가 주입하지 않고 에러). 주입 대상은 DataSource, 설정 에셋, 기존 싱글톤 Manager(위). Manager끼리 참조는 `[SerializeField]`, Service는 static이라 주입하지 않는다.
@@ -131,7 +131,7 @@ XXXService (static, DI 등록 안 함, 2개 이상 Manager가 참조)
 public void OpenRobotDetail(string robotName)
 {
     if (string.IsNullOrEmpty(robotName)) return;
-    Request(ui_robotDetail, token => _source.GetRobotDetailAsync(robotName, token), detail => ui_robotDetail.Initialize(this, detail));
+    Request(robotDetailPopupUI, token => dataSource.GetRobotDetailAsync(robotName, token), detail => robotDetailPopupUI.Initialize(this, detail));
 }
 
 // UI (자기 Manager만 앎)
@@ -172,13 +172,19 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 - 둥근 모서리 이미지는 `RoundImage`를 쓴다 (Sprite는 Image 모드, Texture(RenderTexture 등)는 `sourceType = RawImage` + `texture`). 새로 만들 때는 메뉴 GameObject > UI (Canvas) > Button Toggle / Round Image.
 
 ## 3. 코드 컨벤션 (공통)
-- 필드는 `[SerializeField] private` + 타입 접두사(`text_x`, `button_x`, `ui_x`, `manager_x`), `[Header]`로 묶는다.
+- **필드 이름**: private / protected / internal(`[SerializeField]`, `[Inject]` 포함)은 camelCase, public은 PascalCase. 접두사(`_`, `m_`, `text_`) 없음. `[SerializeField] private` + `[Header]`로 묶는다.
+  - 용도 + 타입 순: `closeButton`, `closeButtonText`(CloseButton 안의 Text), `contentRect`, `robotInfoUI`, `robotManager`. TMP와 Text는 `Text`, RectTransform은 `Rect`.
+  - GameObject는 오브젝트 이름 그대로, 묶음은 `Group`, 큰 화면 단위는 `Panel`로 끝낸다 (`emptyGroup`, `detailPanel`).
+  - List와 배열은 `xxxList` (`closeButtonList`). Data 목록은 `robotDataList`(`List<RobotData>`), 목록 Data 클래스는 `robotListData`(`RobotListData`)로 구분한다.
+  - bool은 `is` / `has` / `can` (`isOpen`). 매개변수, 지역 변수는 필드와 같은 이름을 쓰지 않는다.
+  - 예외: Data 필드는 서버 응답과 같은 snake_case.
+- 메서드, 속성, 이벤트, 상수(static readonly 포함)는 접근 수준과 관계없이 PascalCase.
 - 메서드 호출은 위치 인자만 쓴다 (named argument 금지).
 - 주석은 핵심만 한 줄. 항목 구분에 `·`를 쓰지 않고 `,` 또는 `/`를 쓴다.
 - 이벤트 구독, 해제는 OnEnable / OnDisable (UIBase 자식은 OnOpened / OnClosed).
 - 표시 문구는 인스펙터 string. 값 없음 표시, 입력 시스템, 상태 Tag는 프로젝트 설정의 공용 유틸을 쓴다.
 - C# 관례대로 약어도 파스칼 (`OeeManager`).
-- 편집 전 파일을 다시 읽고, 요청 범위 밖은 고치지 않는다.
+- 편집 전 파일을 다시 읽고, 요청 범위 밖은 고치지 않는다. 단, 이름 변경에 따른 호출부 수정은 범위 밖이어도 한다 (5절).
 
 ## 4. 절차
 
@@ -202,14 +208,17 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 2. **Data**: 서버 응답 형식대로 `XxxData` / `XxxListData`, 계산은 `GetXxx()`.
 3. **DataSource**: 인터페이스에 `GetXxxAsync(조건, CancellationToken)` 추가, Sample(샘플 JSON), Api 구현. 새 구현은 Sample / Api 바인더에 등록 (없으면 위 3단계처럼 생성).
 4. **UI**: `UIBase<XxxData>` 상속, `SetData`, `OnOpened` / `OnClosed`, `ResetView`. 화면 이동, 조건 변경은 자기 Manager 메서드.
-5. **Manager**: `[Inject] private IXxxDataSource _source;`, `OpenXxx` / `RequestXxx`에서 `Request(ui, fetch, apply)`, 연결 UI는 `[SerializeField]` + `BindViews`.
-6. **오브젝트, 프리팹 이름**: 스크립트 이름과 같게 (5절).
+5. **Manager**: `[Inject] private IXxxDataSource dataSource;`, `OpenXxx` / `RequestXxx`에서 `Request(ui, fetch, apply)`, 연결 UI는 `[SerializeField]` + `BindViews`.
+6. **오브젝트, 프리팹 이름**: 스크립트 이름, 연결된 필드 이름의 PascalCase와 같게 (5절).
 7. **씬 연결, 검증**: 위 7, 8과 같음.
 
 ## 5. 이름 변경 주의
 - 클래스, 파일 이름은 `.meta`를 같이 옮겨 guid 유지 (씬, 프리팹 연결 유지).
-- `[SerializeField]` 필드 이름을 바꾸면 `[FormerlySerializedAs("old")]`를 붙인다.
-- **이 스킬의 스크립트(XXXUI, XXXManager)가 붙은 오브젝트는 이름을 스크립트 이름과 같게** 한다. 같은 스크립트가 여럿이면 `RobotFloatLabelUI_AGV-01`처럼 뒤에 구분자. 그 밖의 하위 오브젝트는 프로젝트 접두사 규칙(`Text_` / `Image_` / `Group_` / `Button_` 등) 유지.
+- 기존 코드를 정리할 때 필드 이름은 3절 규칙으로 바꾼다. 새 코드에는 아래 어트리뷰트를 쓰지 않는다.
+  - **1차 정리**: `[SerializeField]` 필드 이름을 바꾸면 `[FormerlySerializedAs("old")]`를 붙인다 (범위 밖 씬, 프리팹의 연결 유지). public 멤버는 다른 파일의 호출부도 같이 바꾼다.
+  - **2차 정리** (사용자가 요청할 때): 그 스크립트를 쓰는 씬, 프리팹, 에셋을 `.meta` guid로 모두 찾아 다시 저장(`AssetDatabase.ForceReserializeAssets`)하고, 옛 필드 이름이 YAML에 남아 있지 않은지 grep으로 확인한 뒤 `FormerlySerializedAs`를 지운다. 하나라도 남아 있으면 지우지 않고 보고한다.
+- **오브젝트 이름은 연결된 필드 이름의 PascalCase**로 한다 (`closeButtonText` → `CloseButtonText`, XXXUI / XXXManager가 붙은 오브젝트는 스크립트 이름). 필드가 없는 오브젝트도 같은 방식(`HeaderGroup`). 같은 스크립트가 여럿이면 `RobotFloatLabelUI_AGV-01`처럼 뒤에 구분자.
+  - 기존 오브젝트 이름을 바꾸기 전에 Animator 클립 경로, `Find("...")` 문자열, 다른 씬의 이름 오버라이드를 검색한다. 걸리면 같이 고치거나 이름을 유지하고 보고한다.
 - 프리팹 루트 이름은 파일 이름을 따르므로 `AssetDatabase.RenameAsset`으로 프리팹 파일 이름을 바꾼다 (guid 유지). 상위 프리팹, 씬의 중첩 인스턴스 이름 오버라이드(`propertyPath: m_Name`)도 같이 고친다. 작업 씬이 아닌 다른 씬의 오버라이드는 건드리지 않는다.
 - 씬에 Manager를 추가할 때 기존 참조 fileID를 알면 Unity 저장 대신 YAML 블록(GO, Transform, MB)을 직접 추가하고 씬을 다시 연다 (Unity 저장은 파일을 크게 재직렬화함).
 
