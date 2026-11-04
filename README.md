@@ -21,7 +21,7 @@ Unity 프로젝트에서 **Manager / UI / Data / Service** 구조로 화면 코�
 파일을 직접 내려받을 필요는 없습니다. Unity Package Manager가 아래 git 주소로 GitHub에서 패키지를 받아 옵니다.
 
 ```
-https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.8.0
+https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.8.1
 ```
 
 ### 준비
@@ -42,7 +42,7 @@ https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityC
 ```json
 {
   "dependencies": {
-    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.8.0",
+    "com.jos.unityconv": "https://github.com/Jos5565/Claude-Unity-CodingConventionPackage.git?path=/UnityCodingConvention/Packages/com.jos.unityconv#v2.8.1",
     ...
   }
 }
@@ -99,18 +99,18 @@ v2에서 패키지 이름이 `com.jos.code-conv`에서 `com.jos.unityconv`로 �
 
 ## 업데이트
 
-주소 끝의 `#v2.8.0`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
+주소 끝의 `#v2.8.1`은 버전 태그입니다. 태그로 고정해야 팀원 모두가 같은 버전을 받습니다.
 
 Package Manager의 **Update** 버튼은 git 패키지에서 같은 태그를 다시 받기만 해서 새 버전으로 올라가지 않습니다. 대신 패키지의 업데이트 메뉴를 씁니다 (v2.3.0부터).
 
 1. **Tools > UnityConv > Check for Updates**를 누릅니다. Unity를 열 때도 하루에 한 번 자동으로 확인합니다.
-2. 새 버전이 있으면 `v2.8.0 → v2.9.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
+2. 새 버전이 있으면 `v2.8.1 → v2.9.0` 대화상자가 나옵니다. **업데이트**를 누르면 그 태그로 다시 설치하고, `manifest.json`도 Unity가 바꿉니다.
    - **이 버전 건너뛰기**를 고르면 그 버전은 자동 확인에서 다시 묻지 않습니다. 메뉴로는 언제든 확인할 수 있습니다.
 3. 스킬도 새 버전으로 다시 설치됩니다.
 
 새 버전은 저장소의 `vX.Y.Z` 태그를 `git ls-remote`로 읽어서 찾습니다. 패키지를 받을 때와 같은 git 로그인 정보를 쓰므로 Private 저장소에서도 동작합니다.
 
-v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.8.0`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
+v2.2.0 이하에서는 메뉴가 없으니 `manifest.json`의 주소 끝을 `#v2.8.1`으로 한 번 직접 바꿉니다. [Tags](https://github.com/Jos5565/Claude-Unity-CodingConventionPackage/tags)에서 버전 목록을 볼 수 있습니다.
 
 > 태그 없이 `#main`을 쓰면 받을 때마다 최신 코드가 들어옵니다. 팀원마다 버전이 달라질 수 있어 권장하지 않습니다.
 
@@ -283,7 +283,7 @@ ButtonToggle selected = tabToggleGroup.GetFirstActiveButtonToggle();
 
 - **asmdef**: 패키지 어셈블리는 `UnityConv`(Bases, Network)와 `UnityConv.UI`(UI 컴포넌트)입니다. 기본 프로젝트 코드(Assembly-CSharp)는 자동으로 참조합니다. 프로젝트 코드가 자체 `.asmdef`를 쓰면 그 asmdef의 References에 직접 추가하세요.
 - **이름 충돌**: 프로젝트에 이미 전역 네임스페이스의 `ManagerBase`, `UIBase`가 있어도 컴파일 에러는 나지 않습니다. 다만 섞어 쓰면 헷갈리니 화면 단위로 패키지 클래스로 옮기는 것을 권장합니다.
-- **Unity-MCP 버전**: 설치 도구는 `v9.7.3` 태그로 고정해서 설치합니다. 다른 버전을 쓰려면 `manifest.json`에서 직접 바꾸면 됩니다.
+- **Unity-MCP 버전**: 설치 도구는 `#main` 브랜치(최신 릴리즈)로 설치합니다. 이미 설치된 프로젝트는 바꾸지 않으므로, 예전 고정 버전(`#v9.7.3` 등)이면 `manifest.json`의 주소 끝을 `#main`으로 바꿉니다. Unity는 git 패키지를 `packages-lock.json`에 기록한 커밋으로 유지하므로, 최신으로 올리려면 Package Manager에서 Unity-MCP를 **Update**하거나 `packages-lock.json`의 해당 항목을 지웁니다.
 - **지원 버전**: Unity 6 (6000.0) 이상. 개발과 테스트는 Unity 6000.3에서 했습니다.
 
 ---

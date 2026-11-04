@@ -33,7 +33,7 @@ $ARGUMENTS
    - 이번 정리에서 제외할 것 (다른 씬이 쓰는 타입 등)
 3. **Base 코드**: `com.jos.unityconv` 패키지가 제공한다. 프로젝트에 복사하거나 새로 만들지 않는다.
    - 설치 확인: `Packages/manifest.json`의 `com.jos.unityconv`, 없으면 `Packages/com.jos.unityconv/package.json`(Embedded) 또는 `Packages/packages-lock.json`. 모두 없으면 작업 전에 설치를 안내한다. 예전 이름 `com.jos.code-conv`가 있으면 교체를 안내한다.
-   - 버전 확인: 이 스킬은 패키지 **v2.8.0** 기준이다. 프로젝트 패키지 버전(`package.json`의 version, git 주소의 `#vX.Y.Z`)이 더 낮으면 사용자에게 알리고, 아래 Base API 요약 대신 그 패키지의 `Skill~/code-conv/SKILL.md`(Embedded 폴더 또는 `Library/PackageCache/com.jos.unityconv*/`)를 기준으로 삼는다.
+   - 버전 확인: 이 스킬은 패키지 **v2.8.1** 기준이다. 프로젝트 패키지 버전(`package.json`의 version, git 주소의 `#vX.Y.Z`)이 더 낮으면 사용자에게 알리고, 아래 Base API 요약 대신 그 패키지의 `Skill~/code-conv/SKILL.md`(Embedded 폴더 또는 `Library/PackageCache/com.jos.unityconv*/`)를 기준으로 삼는다.
    - Bases: `using UnityConv.Bases;` (`ManagerBase`, `UIBase`, `UIBase<TData>`, `PopupService`)
    - Network: `using UnityConv.Network;` (`APIService`, `APIStore`, `APIResponse<T>`). `APIService`는 static이고 처음 쓸 때 `Resources/APIConfig`(APIStore 에셋)를 읽는다. 서버(Dev / Release 등)는 APIStore의 Servers 목록과 Selected Server로 고르고, 코드에서 서버 주소를 분기하지 않는다. 씬에 오브젝트를 두지 않는다 (예전 `NetworkManager`가 씬에 있으면 APIStore를 `Resources/APIConfig`로 옮기고 지우도록 안내).
    - DI: `using UnityConv.DI;` (`[Inject]`, `SceneInstaller`, `SceneBinder`)

@@ -23,7 +23,7 @@ namespace UnityConv.Editor
         private const string StampFileName = ".installed";
 
         private const string McpPackageName = "com.coplaydev.unity-mcp";
-        private const string McpPackageUrl = "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v9.7.3";
+        private const string McpPackageUrl = "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main";
         private const string McpCheckedKey = "UnityConv.McpChecked"; // 에디터 세션당 한 번만 확인
 
         private static AddRequest _mcpRequest;
