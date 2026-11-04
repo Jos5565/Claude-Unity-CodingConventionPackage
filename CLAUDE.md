@@ -4,6 +4,7 @@
 
 - 스킬 원본은 `Packages/com.jos.unityconv/Skill~/code-conv/SKILL.md`. 개인 스킬 폴더(`~/.claude/skills/code-conv/`, Windows `%USERPROFILE%\.claude\skills\code-conv\`)는 SkillInstaller가 만든 복사본이라 수정하지 않는다 (v2.1.0부터 프로젝트가 아닌 개인 폴더에 설치).
 - SKILL.md의 "패키지 코드는 수정하지 않는다" 규칙은 패키지를 쓰는 프로젝트용이다. 이 저장소에서는 패키지 코드를 고친다.
+- 버전을 올릴 때 `package.json`과 함께 SKILL.md 0절의 기준 버전(`패키지 **vX.Y.Z** 기준`)도 같이 올린다.
 - 새 파일을 만들면 Unity로 열어 `.meta`를 생성한 뒤 커밋한다 (git 설치 패키지는 `.meta` 없는 파일을 무시).
 - 다른 프로젝트 파일을 가져올 때 `.meta`를 복사하지 않는다 (GUID가 겹치면 설치 프로젝트에서 패키지 파일이 무시됨). 이미 들어왔으면 GUID를 새로 만들고 샘플, asmdef 참조도 같이 바꾼다.
 - 런타임 코드는 `UnityConv.Bases` / `UnityConv.Network` / `UnityConv.DI` / `UnityConv.UI` 네임스페이스, 스킬 3절 코드 컨벤션을 따른다. 에디터 코드는 `UnityConv.UI.EditorTools`처럼 `Editor`가 아닌 이름을 쓴다 (`UnityEditor.Editor`와 충돌).

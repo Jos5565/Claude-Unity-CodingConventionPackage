@@ -12,6 +12,7 @@ namespace UnityConv.Bases
     {
         private static readonly Dictionary<Type, Component> _popups = new Dictionary<Type, Component>();
         private static readonly List<GameObject> _stack = new List<GameObject>();
+        private static readonly HashSet<GameObject> _covered = new HashSet<GameObject>(); // 위 팝업에 가려져 꺼진 팝업 (닫힘 아님)
 
         /// <summary>
         /// 스택 변경 로그 출력 여부
@@ -36,6 +37,15 @@ namespace UnityConv.Bases
         {
             _popups.Clear();
             _stack.Clear();
+            _covered.Clear();
+        }
+
+        /// <summary>
+        /// 위 팝업에 가려져 꺼진 상태인지 (UIBase가 닫힘과 구분할 때 사용)
+        /// </summary>
+        public static bool IsCovered(GameObject popup)
+        {
+            return popup != null && _covered.Contains(popup);
         }
 
         /// <summary>
@@ -74,11 +84,15 @@ namespace UnityConv.Bases
             _stack.Remove(target);
             if (_stack.Count > 0)
             {
-                _stack[_stack.Count - 1].SetActive(false);
+                // 이전 팝업은 닫지 않고 가림 (돌아오면 요청, 화면 상태 유지)
+                GameObject previous = _stack[_stack.Count - 1];
+                _covered.Add(previous);
+                previous.SetActive(false);
             }
             _stack.Add(target);
 
             target.transform.SetAsLastSibling();
+            _covered.Remove(target);
             target.SetActive(true);
             LogStack($"Push {target.name}");
         }
@@ -108,7 +122,7 @@ namespace UnityConv.Bases
             {
                 GameObject item = _stack[i];
                 _stack.RemoveAt(i);
-                item.SetActive(false);
+                Deactivate(item);
             }
             ShowTop();
             LogStack($"Close {target.name}");
@@ -149,10 +163,11 @@ namespace UnityConv.Bases
             {
                 if (_stack[i] != null)
                 {
-                    _stack[i].SetActive(false);
+                    Deactivate(_stack[i]);
                 }
             }
             _stack.Clear();
+            _covered.Clear();
             LogStack("CloseAll");
         }
 
@@ -162,6 +177,7 @@ namespace UnityConv.Bases
         private static void CleanUp()
         {
             _stack.RemoveAll(item => item == null);
+            _covered.RemoveWhere(item => item == null);
             if (_stack.Count > 0 && !_stack[_stack.Count - 1].activeSelf)
             {
                 _stack.RemoveAt(_stack.Count - 1);
@@ -173,7 +189,26 @@ namespace UnityConv.Bases
         {
             if (_stack.Count > 0)
             {
-                _stack[_stack.Count - 1].SetActive(true);
+                GameObject top = _stack[_stack.Count - 1];
+                _covered.Remove(top);
+                top.SetActive(true);
+            }
+        }
+
+        /// <summary>
+        /// 스택에서 빠지는 팝업 끄기, 가려져 이미 꺼진 팝업은 OnDisable이 다시 오지 않으므로 닫힘을 직접 알림
+        /// </summary>
+        private static void Deactivate(GameObject item)
+        {
+            bool wasCovered = _covered.Remove(item);
+            item.SetActive(false);
+            if (!wasCovered)
+            {
+                return;
+            }
+            foreach (UIBase ui in item.GetComponents<UIBase>())
+            {
+                ui.HandleClosedWhileCovered();
             }
         }
 

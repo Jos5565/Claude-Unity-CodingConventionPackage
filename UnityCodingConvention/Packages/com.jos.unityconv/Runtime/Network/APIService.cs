@@ -41,7 +41,7 @@ namespace UnityConv.Network
         /// <summary>파일 응답의 확장자 판별 (없으면 extension은 null), 프로젝트에서 등록합니다.</summary>
         public static Func<byte[], string> ExtensionDetector { get; set; }
 
-        public static async Task<UploadFileResponse> PostFileAsync(string urlName, string fileName, byte[] fileData, object[] keys = null)
+        public static async Task<UploadFileResponse> PostFileAsync(string urlName, string fileName, byte[] fileData, object[] keys = null, CancellationToken cancellationToken = default)
         {
             if (fileData == null || fileData.Length == 0)
             {
@@ -61,7 +61,12 @@ namespace UnityConv.Network
             request.SetRequestHeader("Accept", "application/json");
             CookieStore.Apply(request);
 
-            await request.SendWebRequest();
+            using (cancellationToken.Register(request.Abort))
+            {
+                await request.SendWebRequest();
+            }
+            if (cancellationToken.IsCancellationRequested)
+                return null;
             CookieStore.Capture(request);
 
             if (request.result != UnityWebRequest.Result.Success)
@@ -82,7 +87,7 @@ namespace UnityConv.Network
         /// <summary>
         /// multipart/form-data 텍스트 필드로 POST하고, 응답 바디 전체를 TResponse로 직접 파싱합니다. 실패 시 null.
         /// </summary>
-        public static async Task<TResponse> PostMultipartDirectAsync<TResponse>(string urlName, Dictionary<string, string> fields, object[] keys = null)
+        public static async Task<TResponse> PostMultipartDirectAsync<TResponse>(string urlName, Dictionary<string, string> fields, object[] keys = null, CancellationToken cancellationToken = default)
             where TResponse : class
         {
             string url = BuildUrl(urlName, keys);
@@ -94,7 +99,9 @@ namespace UnityConv.Network
                 foreach (KeyValuePair<string, string> field in fields)
                     if (!string.IsNullOrEmpty(field.Value)) sections.Add(new MultipartFormDataSection(field.Key, field.Value)); // 빈 값은 섹션을 만들 수 없음
                 return UnityWebRequest.Post(url, sections);
-            }, DefaultTimeoutSec);
+            }, DefaultTimeoutSec, false, cancellationToken);
+            if (result.canceled)
+                return null;
 
             if (!result.ok)
             {
@@ -136,21 +143,21 @@ namespace UnityConv.Network
 
 
         /// <summary>요청 바디(TRequest)와 응답 data(TResponse)의 형식이 다를 때 사용합니다.</summary>
-        public static async Task<TResponse> PostResponeAsync<TRequest, TResponse>(string urlName, TRequest formData, object[] keys = null)
+        public static async Task<TResponse> PostResponeAsync<TRequest, TResponse>(string urlName, TRequest formData, object[] keys = null, CancellationToken cancellationToken = default)
         {
-            APIResponse<TResponse> response = await PostResponseAsync<TRequest, TResponse>(urlName, formData, keys);
+            APIResponse<TResponse> response = await PostResponseAsync<TRequest, TResponse>(urlName, formData, keys, cancellationToken);
             if (response == null || !response.success)
                 return default;
 
             return response.data;
         }
 
-        public static Task<APIResponse<T>> PostResponseAsync<T>(string urlName, T formData, object[] keys = null)
-            => PostResponseAsync<T, T>(urlName, formData, keys);
+        public static Task<APIResponse<T>> PostResponseAsync<T>(string urlName, T formData, object[] keys = null, CancellationToken cancellationToken = default)
+            => PostResponseAsync<T, T>(urlName, formData, keys, cancellationToken);
 
-        public static async Task<APIResponse<TResponse>> PostResponseAsync<TRequest, TResponse>(string urlName, TRequest formData, object[] keys = null)
+        public static async Task<APIResponse<TResponse>> PostResponseAsync<TRequest, TResponse>(string urlName, TRequest formData, object[] keys = null, CancellationToken cancellationToken = default)
         {
-            APIResult result = await PostFormAsync(urlName, formData, keys);
+            APIResult result = await PostFormAsync(urlName, formData, keys, cancellationToken);
             if (result == null)
                 return null;
 
@@ -169,10 +176,10 @@ namespace UnityConv.Network
         /// <summary>
         /// 응답이 APIResponse로 감싸지지 않은 경우, 응답 바디 전체를 TResponse로 직접 파싱합니다.
         /// </summary>
-        public static async Task<TResponse> PostDirectAsync<TRequest, TResponse>(string urlName, TRequest formData, object[] keys = null)
+        public static async Task<TResponse> PostDirectAsync<TRequest, TResponse>(string urlName, TRequest formData, object[] keys = null, CancellationToken cancellationToken = default)
             where TResponse : class
         {
-            APIResult result = await PostFormAsync(urlName, formData, keys);
+            APIResult result = await PostFormAsync(urlName, formData, keys, cancellationToken);
             if (result == null)
                 return null;
 
@@ -189,7 +196,7 @@ namespace UnityConv.Network
             return parsed;
         }
 
-        private static async Task<APIResult> PostFormAsync<TRequest>(string urlName, TRequest formData, object[] keys)
+        private static async Task<APIResult> PostFormAsync<TRequest>(string urlName, TRequest formData, object[] keys, CancellationToken cancellationToken)
         {
             string url = BuildUrl(urlName, keys);
             if (url == null) return default;
@@ -197,9 +204,13 @@ namespace UnityConv.Network
             Debug.Log(url);
             APIResult result = null;
             if (formData == null)
-                result = await PostJsonWithRetryAsync(url, "", 30);
+                result = await PostJsonWithRetryAsync(url, "", 30, cancellationToken);
             else
-                result = await PostJsonWithRetryAsync(url, JsonUtility.ToJson(formData), 30);
+                result = await PostJsonWithRetryAsync(url, JsonUtility.ToJson(formData), 30, cancellationToken);
+
+            // 취소는 실패 로그 없이 null
+            if (result.canceled)
+                return null;
 
             if (!result.ok && string.IsNullOrWhiteSpace(result.text))
             {
@@ -208,13 +219,15 @@ namespace UnityConv.Network
             }
             return result;
         }
-        public static async Task<APIFileResponse> GetFileAsync(string urlName, string[] keys)
+        public static async Task<APIFileResponse> GetFileAsync(string urlName, string[] keys, CancellationToken cancellationToken = default)
         {
             string url = BuildUrl(urlName, keys);
             if (url == null) return default;
 
 
-            var get = await SendWithRetryAsync(() => UnityWebRequest.Get(url), DownloadTimeoutSec, binary: true);
+            var get = await SendWithRetryAsync(() => UnityWebRequest.Get(url), DownloadTimeoutSec, true, cancellationToken);
+            if (get.canceled)
+                return default;
 
             if (!get.ok)
             {
@@ -238,12 +251,14 @@ namespace UnityConv.Network
             };
             return data;
         }
-        public static async Task<APIFileResponse> GetFileAsync(string urlName)
+        public static async Task<APIFileResponse> GetFileAsync(string urlName, CancellationToken cancellationToken = default)
         {
             string url = BuildDownloadUrl(urlName);
             if (url == null) return default;
 
-            var get = await SendWithRetryAsync(() => UnityWebRequest.Get(url), DownloadTimeoutSec, binary: true);
+            var get = await SendWithRetryAsync(() => UnityWebRequest.Get(url), DownloadTimeoutSec, true, cancellationToken);
+            if (get.canceled)
+                return default;
 
             if (!get.ok)
             {
@@ -355,13 +370,15 @@ namespace UnityConv.Network
         /// <summary>
         /// 응답이 APIResponse로 감싸지지 않은 GET 요청. 응답 바디 전체를 TResponse로 직접 파싱합니다.
         /// </summary>
-        public static async Task<TResponse> GetDirectAsync<TResponse>(string urlName, object[] keys = null)
+        public static async Task<TResponse> GetDirectAsync<TResponse>(string urlName, object[] keys = null, CancellationToken cancellationToken = default)
             where TResponse : class
         {
             string url = BuildUrl(urlName, keys);
             if (url == null) return default;
 
-            var get = await SendWithRetryAsync(() => UnityWebRequest.Get(url), DefaultTimeoutSec);
+            var get = await SendWithRetryAsync(() => UnityWebRequest.Get(url), DefaultTimeoutSec, false, cancellationToken);
+            if (get.canceled)
+                return null;
             if (!get.ok)
             {
                 Debug.LogError($"[APIService] GET 실패 ({url}): {get.error}");

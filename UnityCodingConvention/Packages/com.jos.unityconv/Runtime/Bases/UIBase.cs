@@ -9,6 +9,7 @@ namespace UnityConv.Bases
     {
         private bool _isOpening; // Initialize가 여는 중 (Manager에 다시 알리지 않음)
         private bool _needsReset = true; // 닫힌 뒤 처음 Initialize면 화면 상태 리셋
+        private bool _isCovered; // 위 팝업에 가려져 꺼짐 (닫힘 아님, 요청과 화면 상태 유지)
 
         /// <summary>
         /// 이 UI를 초기화한 Manager
@@ -21,6 +22,11 @@ namespace UnityConv.Bases
         public bool IsShown { get; private set; }
 
         /// <summary>
+        /// 위 팝업에 가려져 꺼져 있는지 (닫힌 것은 아님)
+        /// </summary>
+        public bool IsCovered => _isCovered;
+
+        /// <summary>
         /// 팝업이면 Initialize 때 PopupService로 열고 리셋, 위젯은 데이터만 적용
         /// </summary>
         protected virtual bool IsPopup => true;
@@ -29,8 +35,10 @@ namespace UnityConv.Bases
         private void OnEnable()
         {
             IsShown = true;
+            bool isReturning = _isCovered; // 가려졌다 돌아옴, 다시 조회하지 않음
+            _isCovered = false;
             OnOpened();
-            if (!_isOpening && Owner != null)
+            if (!_isOpening && !isReturning && Owner != null)
             {
                 Owner.HandleUIOpened(this);
             }
@@ -39,8 +47,27 @@ namespace UnityConv.Bases
         private void OnDisable()
         {
             IsShown = false;
-            _needsReset = true;
             OnClosed();
+            if (PopupService.IsCovered(gameObject))
+            {
+                _isCovered = true;
+                return;
+            }
+            Close();
+        }
+
+        /// <summary>
+        /// 가려진 채로 스택에서 닫힘 (OnDisable이 오지 않아 PopupService가 호출)
+        /// </summary>
+        internal void HandleClosedWhileCovered()
+        {
+            _isCovered = false;
+            Close();
+        }
+
+        private void Close()
+        {
+            _needsReset = true;
             if (Owner != null)
             {
                 Owner.CancelRequests(this);
@@ -89,7 +116,8 @@ namespace UnityConv.Bases
                 return;
             }
 
-            if (!IsShown)
+            // 가려진 팝업은 앞으로 꺼내지 않고 데이터만 적용
+            if (!IsShown && !_isCovered)
             {
                 _isOpening = true;
                 Show();
