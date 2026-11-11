@@ -23,7 +23,7 @@ $ARGUMENTS
 1. CLAUDE.md에서 `code-conv 프로젝트 설정`을 찾는다. 있으면 그 값을 따르고, 이 문서와 다르면 프로젝트 설정이 우선한다.
 2. 없으면 작업 전에 프로젝트를 조사해 아래 항목으로 초안을 만들고, 사용자 확인 후 CLAUDE.md에 추가한다.
    - 작업 씬, Manager 루트 오브젝트
-   - 폴더: Manager / UI / Service / Network(DataSource) / Data / Defs(enum) / 샘플 JSON / DI 바인더
+   - 폴더: Manager / UI / Service / Controller / Network(DataSource) / Data / Defs(enum) / 샘플 JSON / DI 바인더
    - DI: 씬마다 기본 바인더 (Sample / Api 중 지금 쓰는 것)
    - 팝업 여는 방법 (기본은 패키지의 `PopupService`, 프로젝트 전용 팝업 관리자가 있으면 그 클래스)
    - 서버 통신 클래스와 응답 래퍼 (기본은 패키지의 `APIService`, `APIResponse`), 취소 토큰 지원 여부. `APIService`면 `Resources/APIConfig` 에셋 위치
@@ -33,7 +33,7 @@ $ARGUMENTS
    - 이번 정리에서 제외할 것 (다른 씬이 쓰는 타입 등)
 3. **Base 코드**: `com.jos.unityconv` 패키지가 제공한다. 프로젝트에 복사하거나 새로 만들지 않는다.
    - 설치 확인: `Packages/manifest.json`의 `com.jos.unityconv`, 없으면 `Packages/com.jos.unityconv/package.json`(Embedded) 또는 `Packages/packages-lock.json`. 모두 없으면 작업 전에 설치를 안내한다. 예전 이름 `com.jos.code-conv`가 있으면 교체를 안내한다.
-   - 버전 확인: 이 스킬은 패키지 **v2.8.1** 기준이다. 프로젝트 패키지 버전(`package.json`의 version, git 주소의 `#vX.Y.Z`)이 더 낮으면 사용자에게 알리고, 아래 Base API 요약 대신 그 패키지의 `Skill~/code-conv/SKILL.md`(Embedded 폴더 또는 `Library/PackageCache/com.jos.unityconv*/`)를 기준으로 삼는다.
+   - 버전 확인: 이 스킬은 패키지 **v2.9.0** 기준이다. 프로젝트 패키지 버전(`package.json`의 version, git 주소의 `#vX.Y.Z`)이 더 낮으면 사용자에게 알리고, 아래 Base API 요약 대신 그 패키지의 `Skill~/code-conv/SKILL.md`(Embedded 폴더 또는 `Library/PackageCache/com.jos.unityconv*/`)를 기준으로 삼는다.
    - Bases: `using UnityConv.Bases;` (`ManagerBase`, `UIBase`, `UIBase<TData>`, `PopupService`)
    - Network: `using UnityConv.Network;` (`APIService`, `APIStore`, `APIResponse<T>`). `APIService`는 static이고 처음 쓸 때 `Resources/APIConfig`(APIStore 에셋)를 읽는다. 서버(Dev / Release 등)는 APIStore의 Servers 목록과 Selected Server로 고르고, 코드에서 서버 주소를 분기하지 않는다. 씬에 오브젝트를 두지 않는다 (예전 `NetworkManager`가 씬에 있으면 APIStore를 `Resources/APIConfig`로 옮기고 지우도록 안내).
    - DI: `using UnityConv.DI;` (`[Inject]`, `SceneInstaller`, `SceneBinder`)
@@ -66,6 +66,7 @@ XXXService (static, DI 등록 안 함, 2개 이상 Manager가 참조)
 - UI → 자기 Manager: 사용자 요청 (조건 변경, 다른 팝업 열기, 닫힘 알림은 UIBase가 처리).
 - Manager → 연결 UI: `[SerializeField]`로 참조하고 `Initialize(this, data)`로 데이터 전달.
 - Manager → DataSource / Service: 조회, 공용 기능. DataSource, Service는 Manager, UI를 모른다.
+- Manager → Controller: 화면 상태에 따른 제어를 public 메서드로 호출. Controller는 Manager, UI를 모르고, 알릴 일(클릭 등)은 이벤트로 연다.
 - UI는 DataSource, 업무 Service를 직접 부르지 않는다. 예외: UI 인프라 Service(`PopupService.Close(this)` / `Back()`)는 UI가 직접 쓴다.
 - 데이터 Manager끼리는 직접 참조하지 않고 화면 Manager를 거친다.
 
@@ -108,10 +109,14 @@ XXXService (static, DI 등록 안 함, 2개 이상 Manager가 참조)
 - 화면 Manager 없이 Manager 하나뿐인 간단한 화면은 그 Manager가 두 역할을 한다 (Awake에서 `BindViews`, Start에서 최초 조회. DI 샘플이 이 경우).
 - 데이터 Manager끼리는 서로 참조하지 않는다. 다른 Manager 소관 UI는 **화면 Manager를 거쳐** 연다 (화면 이동은 순환하기 쉬움).
 - 화면 하나에 데이터 Manager가 많으면 공통 부모(`Screen`, 공통 갱신 메서드)를 둔다.
+- **Manager 기능이 커지면 나눈다.** Manager에는 데이터 조회와 UI 전달만 남긴다.
+  - 새 데이터의 조회와 UI 전달 → 데이터 Manager
+  - 오브젝트 동작, 연출, 카메라, 3D 상호작용(씬 오브젝트 필요) → Controller (그 Manager의 자식, 아래 XXXController)
+  - 씬 오브젝트 없이 2개 이상 Manager가 쓰는 기능, 상태 → Service (static)
 - **DI**: `[Inject]`는 Manager만 쓴다 (UI에 쓰면 SceneInstaller가 주입하지 않고 에러). 주입 대상은 DataSource, 설정 에셋, 기존 싱글톤 Manager(위). Manager끼리 참조는 `[SerializeField]`, Service는 static이라 주입하지 않는다.
 - 데이터가 다 와야 UI를 Initialize (여러 개면 `Task.WhenAll`).
 - Manager가 Initialize하지 않고 열린 UI(공용 상세 버튼 등)는 UIBase가 `HandleUIOpened`로 알려주고, 필요한 Manager만 오버라이드해 조회.
-- Manager가 Initialize하지 않는 그 밖의 진입점(3D 클릭 등)은 화면 Manager를 `[SerializeField]`로 참조.
+- Manager가 Initialize하지 않는 그 밖의 진입점(3D 클릭 등)은 Controller가 이벤트로 알리고, 그 Controller를 가진 Manager가 구독한다 (XXXController).
 - Action/이벤트로 UI에 뿌리지 않는다. 직접 Initialize.
 - Unity 오브젝트 필드에 `?.` 쓰지 않는다 (Inspector 미연결 fake null 통과). `!= null`로 확인.
 
@@ -222,6 +227,40 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 - 프로젝트 서버 통신 클래스에 취소 지원이 없으면 선택 인자 `CancellationToken cancellationToken = default`를 추가하고 위처럼 끝까지 넘긴다 (기존 호출 유지).
 - 수정 금지 폴더라 토큰을 넘길 수 없으면 사용자에게 확인한 뒤 그대로 호출한다. 응답은 ManagerBase가 버리지만 네트워크 요청은 끝까지 진행되므로 결과 보고에 적는다.
 
+### XXXController
+Manager가 하던 일 중 **데이터 조회와 UI 전달이 아닌 기능**(오브젝트 동작, 연출, 카메라, 3D 상호작용 등)을 떼어낸 컴포넌트. 처음부터 독립적인 기능(LookAt, 회전, 하이라이트)도 Controller로 만든다.
+- 데이터를 다루면 Manager, 다루지 않으면 Controller. 그래서 데이터 Manager는 Controller로 부르지 않는다.
+- 이름은 기능 + Controller (`LookAtController`), 프로젝트 설정의 Controller 폴더.
+- 기능 하나에 Controller 하나. 한 단위의 여러 기능을 한 클래스에 모으지 않는다.
+- 동작 대상은 필드로 받는다 (`lookAtTransformList`). 자기 `transform`을 대상으로 쓰지 않는다.
+- Controller 오브젝트는 자신을 제어하는 Manager의 자식으로 둔다 (아래 씬 구조). 어느 Manager도 제어하지 않으면 `Manager` 그룹 바로 아래.
+- 대상이 프리팹이면 (실행 중 생성하거나 두 곳 이상에서 씀) 그 프리팹 루트가 자기 Controller를 갖는다. 바깥 Controller는 프리팹 안을 직접 참조하지 않고 그 Controller의 public 메서드를 호출한다.
+- Unity 이벤트도 Controller에서 처리한다: 클릭은 `Physics.Raycast`로 맞은 Collider를 목록에서 찾고, 보임 여부는 `Renderer.isVisible`, Animator는 참조해서 제어. 충돌, Animator 이벤트처럼 대상 오브젝트에 스크립트가 꼭 있어야 할 때만 대상에 전달용 컴포넌트를 두고 결과 보고에 적는다.
+- Manager, UI를 모른다. 화면 상태에 따라 제어할 때는 Manager → Controller public 메서드 한 방향. 클릭처럼 Manager에 알려야 하면 Controller가 `public event Action<T>`를 열고 Manager가 OnEnable / OnDisable에서 구독, 해제한다. 여러 Manager가 제어하면 `SceneInstaller`의 `m_SceneObjects`에 등록하고 `[Inject]`로 받는다.
+- 프로젝트 스크립트에만 적용한다 (Collider, Animator, TMP 등은 원래 위치).
+- 기존 코드 정리 시 Controller로 옮기는 것은 정리 범위 안에서만, 옮긴 목록은 결과 보고에 적는다.
+
+### 씬 구조
+- 루트 순서는 아래로 고정한다. 3D 콘텐츠 그룹(이름은 컨텍스트 기반)은 `Manager`와 `SceneInstaller` 사이에 둔다.
+```
+Directional Light
+MainCamera                 (Unity 기본 이름 Main Camera를 바꿈, 태그 MainCamera 유지)
+Canvas
+EventSystem
+Manager                    (정리용 그룹, 컴포넌트 없음)
+├ RobotScreenManager       (화면 Manager)
+│ ├ RobotManager           (데이터 Manager)
+│ └ LookAtController       (이 Manager가 제어하는 Controller)
+└ ...
+Environment                (3D 콘텐츠 그룹, 예시)
+SceneInstaller             (항상 맨 아래)
+```
+- **Canvas는 씬에 하나, 이름은 `Canvas`**. 새 UI는 이 Canvas 아래에 만든다. 메뉴로 UI를 만들다 Canvas가 새로 생기면 UI를 기존 Canvas로 옮기고 새 Canvas는 지운다.
+  - 사용자가 Canvas를 따로 요청하면 요청한 이름으로, 이름 지정이 없으면 요청 내용에 맞게 짓는다 (`PopupCanvas`).
+  - 3D 오브젝트 위 라벨처럼 World Space가 필요한 UI는 요청이 없어도 Canvas를 따로 만들고, 같은 방식으로 이름을 짓는다 (`RobotLabelCanvas`).
+  - 기존 씬에 Canvas가 여러 개면 범위 밖 Canvas는 합치지 않고 결과 보고에 적는다 (정렬 순서, 스케일이 바뀜).
+- 기존 씬은 정리 범위 안의 오브젝트만 이 구조로 옮기고, 옮긴 내용을 결과 보고에 적는다.
+
 ### UI 컴포넌트 (패키지 제공)
 - 버튼과 토글은 `ButtonToggle`을 쓴다. 모드(Button / Toggle)는 인스펙터 툴바로 정한다.
   - Button 모드: `onClick`. Toggle 모드: `onValueChanged(bool)`, `isOn`, `group`(ToggleGroup).
@@ -255,7 +294,7 @@ public class RobotDetailPopupUI : UIBase<RobotDetailData>
 4. **Base**: 패키지 클래스를 쓴다 (0절). `using UnityConv.Bases;` / `using UnityConv.Network;` / `using UnityConv.DI;` 추가.
 5. **UI**: UIBase 상속, Initialize 규칙, 요청은 Manager로, 조회, 조건 비교 코드 제거.
 6. **Manager**: 화면 Manager + 데이터 Manager, `[Inject]`로 DataSource, Request로 조회와 Initialize. `.Instance`는 2절 규칙대로 `[Inject]`로 바꾼다.
-7. **씬 연결**: Manager GameObject 추가, 참조 연결. 씬에 `SceneInstaller`가 없으면 **자동으로 만든다** (오브젝트 이름 `SceneInstaller`, 루트, 기본 바인더 연결). 이미 있으면 기존 바인더에 등록만 추가한다. 주입할 기존 싱글톤 Manager는 `m_SceneObjects`에 넣는다.
+7. **씬 연결**: Manager GameObject 추가, 참조 연결. 씬에 `SceneInstaller`가 없으면 **자동으로 만든다** (오브젝트 이름 `SceneInstaller`, 루트 맨 아래, 기본 바인더 연결). 오브젝트 위치는 2절 씬 구조를 따른다. 이미 있으면 기존 바인더에 등록만 추가한다. 주입할 기존 싱글톤 Manager는 `m_SceneObjects`에 넣는다.
 8. **검증**: 컴파일 에러 0, `[DI]` 경고 0, 플레이 모드에서 모든 UI 열기, 조건 변경, 빠른 연타, 응답 전 닫기, 화면 전환. 플레이 후 씬 dirty 아님, `git status`로 범위 밖 변경 없음.
    - 확인은 콘솔 로그와 텍스트 상태(오브젝트 활성 여부, 컴포넌트 값, `IsShown`)로 한다. **스크린샷은 사용자가 요청할 때만** 찍는다 (이미지 한 장이 코드 파일 수십 개만큼 토큰을 씀). 단, 새 UI를 만들었으면 잘림, 겹침 확인용으로 한 장 찍는다.
    - 바인더나 DI 구현을 새로 만들었거나 바꿨으면 대상 플랫폼 Player 빌드를 한 번 실행해 Sample / Api 바인딩을 확인한다 (스트리핑). 못 하면 보고에 적는다.

@@ -1,6 +1,6 @@
 {
   "name": "com.jos.unityconv",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "displayName": "UnityConv",
   "description": "Manager / UI / Data / Service 구조의 공용 base 코드(ManagerBase, UIBase, PopupService), Network(APIService), 씬 단위 DI(SceneInstaller, [Inject]), UI 컴포넌트(ButtonToggle, RoundImage)와 Claude Code 스킬(/code-conv)을 함께 배포합니다. 설치하면 스킬이 개인 스킬 폴더(~/.claude/skills/code-conv, Windows는 %USERPROFILE%\\.claude\\skills\\code-conv)에 자동으로 설치됩니다.",
   "unity": "6000.0",
